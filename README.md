@@ -1,3 +1,4 @@
+# `compchem_toolkit`
 Collection of python functions to work with `aiida`, `pymatgen` and `VASP`.
 Designed to speed up input setup and output analysis. 
 
