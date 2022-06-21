@@ -1,0 +1,20 @@
+# DFTP not compartible with hybrid, and PBEsol gives accurate values
+ALGO: Normal # Recommended for hybrid - either All or Damped (https://www.vasp.at/wiki/index.php/LHFCALC)
+EDIFF: 1e-06 # global break condition for the electronic SC-loop
+EDIFFG: -0.01
+GGA: PS # PBEsol gives good results of the lattice dielectric constant
+IBRION: 8 # Phonons
+ISIF: 2 # Constant cell shape and volume
+ISYM: -1 # No Symmetry
+ISMEAR: -5 # Tetrahedron smearing
+ISPIN: 1 # non-spin polarized
+LCHARG: True # Write charge densities
+LEPSILON: True # DFPT
+# LCALCEPS: True  # If using hybrid or VDW corrections, use finite differences
+LWAVE: False
+NEDOS: 2000
+NELM: 200 # max electronic steps
+NELMIN: 5
+NSW: 1
+PREC: Accurate 
+SIGMA: 0.1 # width of the smearing in eV
