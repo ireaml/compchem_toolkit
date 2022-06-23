@@ -70,6 +70,7 @@ def get_vasprun_from_pk(
         print(f"Vasprun saved at {vasprun_path}")
     return vasprun
 
+
 def get_outcar_from_pk(
     pk: int,
     remove_file: bool = True,
@@ -101,6 +102,7 @@ def get_outcar_from_pk(
     if remove_file:
         os.remove(outcar_path)
     return outcar
+
 
 def get_dos_from_pk(
     pk: int,
@@ -158,10 +160,14 @@ def get_dos_from_pk(
         os.remove(vasprun_path) # delete vasprun file after plotting DOS
     return myplot
 
+
 def transfer_chgcar(
     pk: int,
     remote_computer: str = None,
 ) -> str:
+    """
+    Transfer the CHGCAR file from the remote computer where the aiida calculation was run. 
+    """
     node = load_node(pk)
     assert node.outputs.remote_folder.attributes["remote_path"], f"No remote path for pk {pk}"
     remote_path = node.outputs.remote_folder.attributes["remote_path"]
@@ -178,6 +184,7 @@ def transfer_chgcar(
         print(f"Error in tranfer_chgcar: {shell_output}")
     return f"{abs_path}/CHGCARS/{node_label}_CHGCAR"
 
+
 def parse_chgcar(
     pk: int,
     remote_computer: str = None,
@@ -185,6 +192,18 @@ def parse_chgcar(
     filename = transfer_chgcar(pk = pk, remote_computer = remote_computer)
     chgcar = Chgcar.from_file(filename)
     return chgcar
+
+
+def get_charge_density_data_from_pk(
+    pk: int,
+    remote_computer: str = None,
+) -> ChargedensityData:
+    """
+    Returns the ChargedensityData object from the pk of aiida node.
+    """
+    filename = transfer_chgcar(pk = pk, remote_computer = remote_computer)
+    return ChargedensityData(filename)
+
 
 def transfer_vasp_files(
     pk: int,
@@ -202,11 +221,11 @@ def transfer_vasp_files(
         os.mkdir(f"{folder_name}")
     for vasp_file in list_of_files: 
         shell_output = subprocess.run([
-            "rsync", "-azvus", f"{remote_computer}:{remote_path}/{vasp_file}", f"{folder_path}/{node_label}_{vasp_file}"
+            "rsync", "-azvus", f"{remote_computer}:{remote_path}/{vasp_file}", f"{folder_name}/{node_label}_{vasp_file}"
         ])
         if shell_output.returncode == 0:
-            print(f"Saved CHGCAR as {folder_path}/{node_label}_{vasp_file}")
-            paths_to_return.append(f"{folder_path}/{node_label}_{vasp_file}")
+            print(f"Saved CHGCAR as {folder_name}/{node_label}_{vasp_file}")
+            paths_to_return.append(f"{folder_name}/{node_label}_{vasp_file}")
         else:
             print(f"Error in tranfer_chgcar: {shell_output}")
     return paths_to_return
