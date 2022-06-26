@@ -38,6 +38,7 @@ def get_options_dict(
     assert computer in options.keys()
     return options[computer]
 
+
 def get_struct(
     pk: int
 ) -> Structure:

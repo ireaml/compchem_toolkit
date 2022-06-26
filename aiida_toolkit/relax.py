@@ -35,8 +35,8 @@ from pymatgen.electronic_structure.core import Spin
 from vasp_toolkit.input import get_potcar_mapping 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/default_relax_incar.yaml"))
-default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/default_POTCARs.yaml"))
+default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_relax_incar.yaml"))
+default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_POTCARs.yaml"))
 
 # Potcar family
 potcar_family = 'PAW_PBE_54'
@@ -80,7 +80,7 @@ def submit_vasp_relax(
         settings (Optional[dict], optional): _description_. Defaults to None.
         remote_folder (Optional[RemoteData], optional): _description_. Defaults to None.
     Returns:
-        WorkChain: _description_
+        WorkChain: aiida Workchain object
     """
     # We set the workchain you would like to call
     workchain = WorkflowFactory('vasp.relax')
@@ -139,6 +139,7 @@ def submit_vasp_relax(
         inputs.potential_mapping = DataFactory('dict')(dict=potential_mapping)
     else:
         inputs.potential_mapping = DataFactory('dict')(dict= get_potcar_mapping(structure = structure))
+    
     # Set options
     inputs.options = DataFactory('dict')(dict=options)
 

@@ -1,4 +1,4 @@
-""" Collection of functions to work with pymatgen Molecule object"""
+""" Collection of functions to work with pymatgen Molecule object """
 
 import pymatgen
 
@@ -9,7 +9,9 @@ def parse_molecule_from_sdf(
     Parse a sdf file into a pymatgen Molecule object.
 
     Args:
-        path (str): path to the `sdf` file containing your molecule.
+        path (str): 
+            path to the `sdf` file containing your molecule.
+            The file should only contain the lines with the atom coordinates and element symbol
 
     Returns:
         pymatgen.core.structure.Molecule: a pymatgen Molecule object.
