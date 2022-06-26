@@ -144,3 +144,4 @@ dope_stuff_irea.py
 backup_aiida.sh
 clear_big_files.sh
 
+vasp_toolkit/zz_old_analyse_procar.py

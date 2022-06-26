@@ -11,6 +11,10 @@ def get_atomic_disp(
     stol: float = 0.4,
     min_dist: float = 0.1,
 ):
+    """
+    Calculates sum of atomic displacements between paired sites of 2 structures.
+    Only displacements above a threshold (`min_dist`) are considered.
+    """
     normalization = (len(ref_structure) / ref_structure.volume) ** (1 / 3)
     norm_rms_disp, norm_dist = analysis._calculate_atomic_disp(
         struct1=ref_structure,

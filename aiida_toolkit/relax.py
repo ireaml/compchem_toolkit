@@ -80,7 +80,7 @@ def submit_vasp_relax(
         settings (Optional[dict], optional): _description_. Defaults to None.
         remote_folder (Optional[RemoteData], optional): _description_. Defaults to None.
     Returns:
-        WorkChain: _description_
+        WorkChain: aiida Workchain object
     """
     # We set the workchain you would like to call
     workchain = WorkflowFactory('vasp.relax')
@@ -139,6 +139,7 @@ def submit_vasp_relax(
         inputs.potential_mapping = DataFactory('dict')(dict=potential_mapping)
     else:
         inputs.potential_mapping = DataFactory('dict')(dict= get_potcar_mapping(structure = structure))
+    
     # Set options
     inputs.options = DataFactory('dict')(dict=options)
 
