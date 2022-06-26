@@ -47,9 +47,15 @@ FORCE_EVAL:
                 PARAMETER_FILE_NAME:  dftd3.dat
                 REFERENCE_FUNCTIONAL:  PBE
                 R_CUTOFF: 10.0
+<<<<<<< HEAD
     PRINT:
         FORCES: 
             _: ON
+=======
+          PRINT:
+              FORCES: 
+                  _: ON
+>>>>>>> 05ee4f8a90b8970eef3bb3d488355147b1c3a144
 MOTION:
     MD:
         ENSEMBLE: NVT
