@@ -1,10 +1,12 @@
+"""
+Module to read and write atoms in PDB file format
+Adapted from ase.pdb (https://github.com/qsnake/ase/blob/master/ase/io/pdb.py)
+"""
+
 import numpy as np 
 
 from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
-
-"""Module to read and write atoms in PDB file format"""
-
 
 def read_pdb(fileobj, index=-1):
     """
