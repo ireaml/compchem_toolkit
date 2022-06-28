@@ -40,15 +40,22 @@ def get_options_dict(
 
 
 def get_struct(
-    pk: int
+    pk: int,
+    output: bool=True,
 ) -> Structure:
     """
-    Get the output structure of a given node.
+    Get the output or input structure of a given node.
     """
     node = load_node(pk)
     try:
-        struct = node.outputs.structure.get_pymatgen()
+        if output:
+            struct = node.outputs.structure.get_pymatgen()
+        else:
+            struct = node.inputs.structure.get_pymatgen()
         return struct
     except:
-        print("No output structure for that node!")
+        if output:
+            print("No output structure for that node!")
+        else:
+            print("No input structure for that node!")
         return None

@@ -1,13 +1,40 @@
+import os
 from typing import Optional
+from monty.serialization import dumpfn, loadfn
+import warnings
 
+# aiida
 from aiida.engine import submit
 from aiida.orm import load_code, Dict, SinglefileData, WorkChainNode
 from aiida.plugins import DataFactory, WorkflowFactory
 
+# pymatgen
 import pymatgen
+from pymatgen.core.structure import Structure
+
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+default_kind_section = loadfn(os.path.join(MODULE_DIR, "yaml_files/cp2k/kind_pbe_file.yaml"))
+
+def generate_kind_section(
+    structure: Structure,
+) -> list:
+    """Generate cp2k kind section (PBE basis) for the elements in the 
+    input structure.
+    Args:
+        structure (pymatgen.core.structure.Structure)
+    Returns:
+        list with the kind section for every element present in the input structure   
+    """
+    try:
+        kind_section = [default_kind_section[str(element)] for element in structure.composition.elements]
+    except KeyError:
+        warnings.warn("The file with the default basis/potentials lacks some of the elements present in your structure!")
+        return None
+    return kind_section
+
 
 def submit_cp2k_workchain(
-    structure: pymatgen.core.structure.Structure,
+    structure: Structure,
     input_parameters: dict,
     options: dict,
     kind_section: Optional[dict]=None,
@@ -37,7 +64,14 @@ def submit_cp2k_workchain(
         raise TypeError(f"Incorrect data type for `parameters`. You gave me a {type(input_parameters)} but I expect a `dict` or `Dict` objects.")
     if not "SUBSYS" in input_parameters.keys() and kind_section:
         input_parameters["SUBSYS"] = {"KIND": kind_section}
-    
+    elif not "SUBSYS" in input_parameters.keys() and not kind_section:
+        try:
+            input_parameters["SUBSYS"] = {"KIND": generate_kind_section(structure) }
+        except:
+            raise KeyError("Problem when automatically generating the KIND section of the CP2K input file. "
+                           "Please provide this either in the input_parameters or specify it with "
+                           "the `kind_section` argument")
+            
     # Setup pseudopotentials & basis set files
     # Basis set
     basis_file = SinglefileData(file="/home/ireaml/cp2k_files/BASIS_MOLOPT")
