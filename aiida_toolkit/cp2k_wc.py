@@ -5,7 +5,7 @@ import warnings
 
 # aiida
 from aiida.engine import submit
-from aiida.orm import load_code, Dict, SinglefileData, WorkChainNode
+from aiida.orm import StructureData, load_code, Dict, SinglefileData, WorkChainNode
 from aiida.plugins import DataFactory, WorkflowFactory
 
 # pymatgen
@@ -18,7 +18,8 @@ default_kind_section = loadfn(os.path.join(MODULE_DIR, "yaml_files/cp2k/kind_pbe
 def generate_kind_section(
     structure: Structure,
 ) -> list:
-    """Generate cp2k kind section (PBE basis) for the elements in the 
+    """
+    Generate cp2k kind section (PBE basis) for the elements in the 
     input structure.
     Args:
         structure (pymatgen.core.structure.Structure)
@@ -55,6 +56,9 @@ def submit_cp2k_workchain(
     code = load_code(code_string)
     builder.cp2k.code = code
     
+    # Structure
+    builder.cp2k.structure = StructureData(pymatgen=structure)
+    
     # Parameters
     if isinstance(input_parameters, dict):
         input_parameters = Dict(dict=input_parameters)
@@ -62,11 +66,11 @@ def submit_cp2k_workchain(
         builder.cp2k.parameters = input_parameters
     else:
         raise TypeError(f"Incorrect data type for `parameters`. You gave me a {type(input_parameters)} but I expect a `dict` or `Dict` objects.")
-    if not "SUBSYS" in input_parameters.keys() and kind_section:
-        input_parameters["SUBSYS"] = {"KIND": kind_section}
-    elif not "SUBSYS" in input_parameters.keys() and not kind_section:
+    if not "SUBSYS" in input_parameters["FORCE_EVAL"].keys() and kind_section:
+        input_parameters["FORCE_EVAL"]["SUBSYS"] = {"KIND": kind_section}
+    elif not "SUBSYS" in input_parameters["FORCE_EVAL"].keys() and not kind_section:
         try:
-            input_parameters["SUBSYS"] = {"KIND": generate_kind_section(structure) }
+            input_parameters["FORCE_EVAL"]["SUBSYS"] = {"KIND": generate_kind_section(structure) }
         except:
             raise KeyError("Problem when automatically generating the KIND section of the CP2K input file. "
                            "Please provide this either in the input_parameters or specify it with "
