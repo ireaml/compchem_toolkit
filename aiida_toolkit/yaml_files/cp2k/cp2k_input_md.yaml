@@ -1,5 +1,5 @@
 GLOBAL:
-    PROJECT: SnO2_sulphate_Gua
+    PROJECT: aiida
     RUN_TYPE: MD
     PRINT_LEVEL: LOW
     WALLTIME: 23:30:00
@@ -63,14 +63,14 @@ MOTION:
                 TIMECON: 100
     PRINT:
         TRAJECTORY:
-            _:  ON
+            _:  "ON"
             ADD_LAST: NUMERIC
             FILENAME: ./Trajectory.pdb
             FORMAT: PDB
             EACH:
                 MD: 1
         FORCES:
-            _: ON
+            _: "ON"
             ADD_LAST: NUMERIC
             FILENAME: ./forces.xyz
             FORMAT: XYZ

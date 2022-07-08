@@ -97,6 +97,6 @@ def submit_cp2k_workchain(
     
     # Submit
     workchain = submit(builder)
-    print(f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}")
+    print(f"Submitted relax workchain with pk: {workchain.pk} and label {label}")
     
     return workchain
