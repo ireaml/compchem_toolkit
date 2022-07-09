@@ -2,10 +2,15 @@
 Parse structure/output information from Quantum Espresso output file
 Much of this has been adapted from ase.io.espresso.
 """
-
-from ase.io.espresso import *
+import warnings
 from copy import copy
 
+# ase
+from ase.cell import  Cell
+from ase import Atoms
+from ase.io.espresso import *
+
+# pymatgen
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -25,9 +30,10 @@ _PW_KPTS = 'number of k points='
 _PW_BANDS = _PW_END
 _PW_BANDSTRUCTURE = 'End of band structure calculation'
 
+
 def read_espresso_structure(
     filename: str,
-):
+) -> Structure:
     """
     Reads a structure from Quantum Espresso output and returns it as a pymatgen Structure.
     Args:
@@ -36,19 +42,46 @@ def read_espresso_structure(
     Returns:
         pymatgen.core.structure.Structure: 
     """
-    with open(filename, 'r') as f:
-        file_content = f.read()
-    filtered_file_content = file_content.split("Begin final coordinates")[-1]
-    cell_lines = filtered_file_content.split("CELL_PARAMETERS")[1]
-
-    parsed_info = parse_pwo_start(
-        lines=cell_lines.split("\n")
-    )
-    aaa = AseAtomsAdaptor()
-    structure = aaa.get_structure(parsed_info['atoms'])
-    structure = structure.get_sorted_structure() # Sort sites by electronegativity
+    if os.path.exists(filename):
+        with open(filename, 'r') as f:
+            file_content = f.read()
+    try:
+        if "Begin final coordinates" in file_content:
+            file_content = file_content.split("Begin final coordinates")[-1] # last geometry
+        cell_lines = [line for line in file_content.split("CELL_PARAMETERS")[1].split('ATOMIC_POSITIONS')[0].split("\n") if line != "" and line != " "]
+        atomic_positions = file_content.split("ATOMIC_POSITIONS")[1]
+        # CELL parameters
+        cell_lines_processed = [
+            [float(number) for number in line.split()] for line in cell_lines if len(line.split()) == 3
+        ]
+        # ATOMIC POSITIONS
+        atomic_positions_processed = [
+            [entry for entry in line.split()] for line in atomic_positions.split("\n") if len(line.split()) >= 4
+        ]
+        coordinates = [
+            [float(entry) for entry in line[1:4]] for line in atomic_positions_processed
+        ]
+        symbols = [entry[0] for entry in atomic_positions_processed]
+        # Check parsing is ok
+        for entry in coordinates:
+            assert len(entry) == 3 # Encure 3 numbers (xyz) are parsed from coordinates section
+        assert not len(symbols) == len(coordinates) # Same number of atoms and coordinates
+        atoms = Atoms(
+            symbols=symbols,
+            positions=coordinates,
+            cell=cell_lines_processed,
+            pbc=True,
+            
+        )
+        aaa = AseAtomsAdaptor()
+        structure = aaa.get_structure(atoms)
+    except:
+        warnings.warn(
+                f"Problem parsing structure from: {filename}, storing as 'Not "
+                f"converged'. Check file & relaxation"
+        )
+        structure = "Not converged"
     return structure
- 
     
 def get_indexes(
     pwo_lines,
