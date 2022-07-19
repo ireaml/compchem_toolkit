@@ -67,18 +67,30 @@ def submit_vasp_relax(
     Submit vasp relaxation.
 
     Args:
-        structure (Structure): _description_
-        code_string (str): _description_
-        kmesh (tuple): _description_
-        incar_options (dict): _description_
-        algo (str, optional): Algorithm for ionic minimization: conjugate gradient (cg) or pseudo Newton(). Defaults to 'cg'.
-        defaulttoconjugategradientpositions (bool, optional): _description_. Defaults to True.
-        shape (bool, optional): _description_. Defaults to False.
-        volume (bool, optional): _description_. Defaults to False.
-        ionic_steps (int, optional): _description_. Defaults to 300.
-        potential_mapping (Optional[dict], optional): _description_. Defaults to None.
-        settings (Optional[dict], optional): _description_. Defaults to None.
-        remote_folder (Optional[RemoteData], optional): _description_. Defaults to None.
+        structure (Structure): 
+            _description_
+        code_string (str): 
+            _description_
+        kmesh (tuple):
+            _description_
+        incar_options (dict): 
+            _description_
+        algo (str, optional): 
+            Algorithm for ionic minimization: conjugate gradient (cg) or pseudo Newton(). Defaults to 'cg'.
+        defaulttoconjugategradientpositions (bool, optional): 
+            _description_. Defaults to True.
+        shape (bool, optional): 
+            _description_. Defaults to False.
+        volume (bool, optional): 
+            _description_. Defaults to False.
+        ionic_steps (int, optional): 
+            _description_. Defaults to 300.
+        potential_mapping (Optional[dict], optional): 
+            _description_. Defaults to None.
+        settings (Optional[dict], optional): 
+            _description_. Defaults to None.
+        remote_folder (Optional[RemoteData], optional): 
+            _description_. Defaults to None.
     Returns:
         WorkChain: aiida Workchain object
     """
@@ -148,11 +160,11 @@ def submit_vasp_relax(
         'parser_settings': {
             'misc': ['total_energies', 'maximum_force', 'maximum_stress', 'run_status', 'run_stats', 'notifications'],
             'add_structure': True, # retrieve structure and kpoints
-            'add_kpoints': True,
-            'add_forces' : True,
+            # 'add_kpoints': True,
+            # 'add_forces' : True,
             'add_energies': True,
             # 'add_bands': True,
-            #'add_trajectory': True,
+            # 'add_trajectory': True,
             },
             }
     if settings:

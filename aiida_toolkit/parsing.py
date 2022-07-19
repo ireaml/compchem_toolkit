@@ -74,14 +74,19 @@ def get_vasprun_from_pk(
 def get_outcar_from_pk(
     pk: int,
     remove_file: bool = True,
+    folder_name: str = None,
 ) -> pymatgen.io.vasp.outputs.Outcar:
     """
     From pk, returns the associated Outcar object
 
     Args:
-        pk (int): pk of aiida node
-        remove_file (bool, optional): whether to remove the file after reading it. Defaults to True.
-
+        pk (int): 
+            pk of aiida node
+        remove_file (bool, optional): 
+            Whether to remove the file after reading it. Defaults to True.
+        folder_name (str, optional):
+            Name of folder to store the file. 
+            Defaults to './outcars'
     Returns:
         outcar: Outcar object
     """
@@ -92,9 +97,14 @@ def get_outcar_from_pk(
     # Read 
     assert 'OUTCAR' in node.outputs.retrieved.list_object_names()
     outcar_content = node.outputs.retrieved.get_object_content('OUTCAR')
-    outcar_path = f'./outcars/OUTCAR_{label}'
-    if not os.path.exists(outcar_path) and not os.path.exists('./outcars'):
-        os.mkdir('./outcars')
+    if not folder_name:
+        folder_name = f"./outcars"
+        outcar_path = f'{folder_name}/OUTCAR_{label}'
+    else:
+        folder_name = f"./{folder_name}"
+        outcar_path = f'{folder_name}/OUTCAR'
+    if not os.path.exists(outcar_path) and not os.path.exists(folder_name):
+        os.mkdir(folder_name)
     if not os.path.exists(outcar_path):
         with open(outcar_path, 'w') as ff:
             ff.write(outcar_content)
@@ -207,25 +217,39 @@ def get_charge_density_data_from_pk(
 
 def transfer_vasp_files(
     pk: int,
-    remote_computer: str = None,
+    remote_computer: str,
+    folder_name: str = None,
     list_of_files: list = None,
 ) -> list:
+    """Parses files from remote computer and transfers them to local computer."""
     node = load_node(pk)
+    # Remote path
     assert node.outputs.remote_folder.attributes["remote_path"], f"No remote path for pk {pk}"
     remote_path = node.outputs.remote_folder.attributes["remote_path"]
     node_label = node.label
-    abs_path = os.getcwd()
-    folder_name = f"{abs_path}/VASP_files"
     paths_to_return = []
+    
+    # Local path
+    abs_path = os.getcwd()
+    if not folder_name:
+        folder_name = f"{abs_path}/VASP_files"
+    else:
+        folder_name = f"{abs_path}/{folder_name}"
     if not os.path.exists(f'{folder_name}'):
         os.mkdir(f"{folder_name}")
+    # Transfer
     for vasp_file in list_of_files: 
+        if folder_name == "VASP_files":
+            file_path = f"{folder_name}/{node_label}_{vasp_file}"
+        else:
+            file_path = f"{folder_name}/{vasp_file}"
+        
         shell_output = subprocess.run([
-            "rsync", "-azvus", f"{remote_computer}:{remote_path}/{vasp_file}", f"{folder_name}/{node_label}_{vasp_file}"
+            "rsync", "-azvus", f"{remote_computer}:{remote_path}/{vasp_file}", f"{file_path}"
         ])
         if shell_output.returncode == 0:
-            print(f"Saved CHGCAR as {folder_name}/{node_label}_{vasp_file}")
-            paths_to_return.append(f"{folder_name}/{node_label}_{vasp_file}")
+            print(f"Saved {vasp_file} as {file_path}")
+            paths_to_return.append(f"{file_path}")
         else:
-            print(f"Error in tranfer_chgcar: {shell_output}")
+            print(f"Error in tranfer: {shell_output}")
     return paths_to_return

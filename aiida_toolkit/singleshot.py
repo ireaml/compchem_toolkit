@@ -61,15 +61,24 @@ def submit_vasp_singleshot(
     """_summary_
 
     Args:
-        structure (Structure): _description_
-        code_string (str): _description_
-        kmesh (tuple): _description_
-        incar_options (dict): _description_
-        use_default_incar_settings (bool): whether to update the default INCAR settings with the user defined ones
-        potential_mapping (Optional[dict], optional): _description_. Defaults to None.
-        settings (Optional[dict], optional): _description_. Defaults to None.
-        label (str): label for the workchain node
-        spin_orbit (bool): whether to include spin-orbit coupling 
+        structure (Structure): 
+            _description_
+        code_string (str):
+            _description_
+        kmesh (tuple): 
+            _description_
+        incar_options (dict): 
+            _description_
+        use_default_incar_settings (bool): 
+            whether to update the default INCAR settings with the user defined ones
+        potential_mapping (Optional[dict], optional): 
+            _description_. Defaults to None.
+        settings (Optional[dict], optional): 
+            _description_. Defaults to None.
+        label (str): 
+            label for the workchain node
+        spin_orbit (bool): 
+            whether to include spin-orbit coupling 
     Returns:
         WorkChain: _description_
     """
@@ -141,11 +150,11 @@ def submit_vasp_singleshot(
     default_settings = {
         'parser_settings': {
             'misc': ['total_energies', 'maximum_force', 'maximum_stress', 'run_status', 'run_stats', 'notifications'],
-            'add_structure': True, # retrieve structure and kpoints
-            'add_kpoints': True,
-            'add_forces' : True,
+            'add_structure': True, # retrieve structure
+            # 'add_kpoints': True,
+            # 'add_forces' : True,
             'add_energies': True,
-            'add_bands': True,
+            # 'add_bands': True,
             #'add_trajectory': True,
             },
             }

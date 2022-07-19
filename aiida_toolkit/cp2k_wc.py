@@ -41,6 +41,7 @@ def submit_cp2k_workchain(
     kind_section: Optional[dict]=None,
     code_string: str="cp2k-9.1@daint_gpu",
     label: Optional[str]=None,
+    remote_folder: Optional[str]=None,
 )-> WorkChainNode:
     """
     Submit Cp2k BaseWorkChain.
@@ -58,6 +59,16 @@ def submit_cp2k_workchain(
     
     # Structure
     builder.cp2k.structure = StructureData(pymatgen=structure)
+    
+    # Parent folder
+    if remote_folder:
+        # Update restart info in parameters
+        restart_wfn_fn = f"{remote_folder}/aiida-RESTART.wfn"
+        input_parameters["FORCE_EVAL"]["DFT"]["RESTART_FILE_NAME"] = restart_wfn_fn
+        input_parameters["FORCE_EVAL"]["DFT"]["SCF"]["SCF_GUESS"] = "RESTART"
+        input_parameters["EXT_RESTART"] = {"RESTART_FILE_NAME": f"{remote_folder}/aiida-1.restart"}
+        # Restart folder
+        builder.parent_calc_folder = remote_folder
     
     # Parameters
     if isinstance(input_parameters, dict):
