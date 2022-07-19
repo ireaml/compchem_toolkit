@@ -5,8 +5,9 @@ import warnings
 
 # aiida
 from aiida.engine import submit
-from aiida.orm import StructureData, load_code, Dict, SinglefileData, WorkChainNode
+from aiida.orm import RemoteData, StructureData, load_code, Dict, SinglefileData, WorkChainNode
 from aiida.plugins import DataFactory, WorkflowFactory
+from aiida.engine.processes.builder import ProcessBuilder
 
 # pymatgen
 import pymatgen
@@ -41,13 +42,14 @@ def submit_cp2k_workchain(
     kind_section: Optional[dict]=None,
     code_string: str="cp2k-9.1@daint_gpu",
     label: Optional[str]=None,
-    remote_folder: Optional[str]=None,
-)-> WorkChainNode:
+    remote_data: Optional[RemoteData]=None,
+    submit_workchain: Optional[bool]=True,
+)-> WorkChainNode or ProcessBuilder:
     """
     Submit Cp2k BaseWorkChain.
 
     Returns:
-        WorkChainNode: 
+        WorkChainNode or ProcessBuilder (if submit_workchain is set to False)
     """
     # Construct process builder.cp2k.
     Cp2kBaseWorkChain = WorkflowFactory("cp2k.base")
@@ -61,15 +63,17 @@ def submit_cp2k_workchain(
     builder.cp2k.structure = StructureData(pymatgen=structure)
     
     # Parent folder
-    if remote_folder:
+    if remote_data:
         # Update restart info in parameters
+        remote_folder = remote_data.get_remote_path()
         restart_wfn_fn = f"{remote_folder}/aiida-RESTART.wfn"
         input_parameters["FORCE_EVAL"]["DFT"]["RESTART_FILE_NAME"] = restart_wfn_fn
         input_parameters["FORCE_EVAL"]["DFT"]["SCF"]["SCF_GUESS"] = "RESTART"
         input_parameters["EXT_RESTART"] = {"RESTART_FILE_NAME": f"{remote_folder}/aiida-1.restart"}
         # Restart folder
-        builder.parent_calc_folder = remote_folder
-    
+        builder.handler_overrides = Dict(dict={"restart_incomplete_calculation": True})
+        builder.cp2k.parent_calc_folder = remote_data
+        
     # Parameters
     if isinstance(input_parameters, dict):
         input_parameters = Dict(dict=input_parameters)
@@ -107,7 +111,9 @@ def submit_cp2k_workchain(
     builder.cp2k.metadata.label = label
     
     # Submit
-    workchain = submit(builder)
-    print(f"Submitted relax workchain with pk: {workchain.pk} and label {label}")
-    
-    return workchain
+    if submit_workchain:
+        workchain = submit(builder)
+        print(f"Submitted relax workchain with pk: {workchain.pk} and label {label}")
+        return workchain
+    else:
+        return builder
