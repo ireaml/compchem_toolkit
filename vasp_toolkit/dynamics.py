@@ -1,4 +1,7 @@
-# Collection of useful functions for vasp relaxations
+"""
+Collection of useful functions to fix atoms during VASP relaxations
+"""
+
 from copy import deepcopy
 import pymatgen
 from pymatgen.core.structure import Structure
@@ -11,21 +14,21 @@ def get_selective_dynamics_from_layers(
     epsilon: float = 0.01
     ):
     """
-    Returns selective dynamics dictionary to parse to aiida vasp calcjob, 
+    Returns selective dynamics dictionary to parse to aiida vasp calcjob,
     allowing to relax atoms in outer layers of slab
 
     Args:
-        number_of_layers_in_slab (int): 
-            number of layers in slab 
-        structure (pymatgen.core.structure.Structure): 
+        number_of_layers_in_slab (int):
+            number of layers in slab
+        structure (pymatgen.core.structure.Structure):
             Structure
-        epsilon (float, optional): 
-            Tolerance to select sites to relax. The larger, the more sites will be 
-            considered in the outer layers and hence relaxed. 
+        epsilon (float, optional):
+            Tolerance to select sites to relax. The larger, the more sites will be
+            considered in the outer layers and hence relaxed.
             Defaults to 0.01.
 
     Returns:
-        dict: dictionary matching positions_dof to a list which indicates where site 
+        dict: dictionary matching positions_dof to a list which indicates where site
         in structure should be relaxed ([True,True,True]) or fixed ([False,False,False]).
         Follows same ordering as sites in the input structure.
     """
@@ -41,7 +44,7 @@ def get_selective_dynamics_from_layers(
 
     # Flags signaling whether the respective coordinate(s) of this atom will be allowed to change during the ionic relaxation
     # i.e. True enables relaxation of that coordinate
-    selective_dynamics = {'positions_dof' : List(),} 
+    selective_dynamics = {'positions_dof' : List(),}
     atoms_in_outer_layers = []
     for atom in structure_copy:
         # select atoms in top or bottom layer
@@ -56,6 +59,7 @@ def get_selective_dynamics_from_layers(
 
     assert len(selective_dynamics['positions_dof']) == len(structure_copy)
     return selective_dynamics
+
 
 def get_selective_dynamics_from_index(
     structure: Structure,

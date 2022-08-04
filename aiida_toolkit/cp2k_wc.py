@@ -1,3 +1,7 @@
+"""
+Useful functions to submit CP2K workchains with aiida
+"""
+
 import os
 from typing import Optional
 from monty.serialization import dumpfn, loadfn
@@ -20,12 +24,12 @@ def generate_kind_section(
     structure: Structure,
 ) -> list:
     """
-    Generate cp2k kind section (PBE basis) for the elements in the 
+    Generate cp2k kind section (PBE basis) for the elements in the
     input structure.
     Args:
         structure (pymatgen.core.structure.Structure)
     Returns:
-        list with the kind section for every element present in the input structure   
+        list with the kind section for every element present in the input structure
     """
     try:
         kind_section = [default_kind_section[str(element)] for element in structure.composition.elements]
@@ -54,14 +58,14 @@ def submit_cp2k_workchain(
     # Construct process builder.cp2k.
     Cp2kBaseWorkChain = WorkflowFactory("cp2k.base")
     builder = Cp2kBaseWorkChain.get_builder()
-    
+
     # Code
     code = load_code(code_string)
     builder.cp2k.code = code
-    
+
     # Structure
     builder.cp2k.structure = StructureData(pymatgen=structure)
-    
+
     # Parent folder
     if remote_data:
         # Update restart info in parameters
@@ -73,7 +77,7 @@ def submit_cp2k_workchain(
         # Restart folder
         builder.handler_overrides = Dict(dict={"restart_incomplete_calculation": True})
         builder.cp2k.parent_calc_folder = remote_data
-        
+
     # Parameters
     if isinstance(input_parameters, dict):
         input_parameters = Dict(dict=input_parameters)
@@ -90,7 +94,7 @@ def submit_cp2k_workchain(
             raise KeyError("Problem when automatically generating the KIND section of the CP2K input file. "
                            "Please provide this either in the input_parameters or specify it with "
                            "the `kind_section` argument")
-            
+
     # Setup pseudopotentials & basis set files
     # Basis set
     basis_file = SinglefileData(file="/home/ireaml/cp2k_files/BASIS_MOLOPT")
@@ -104,12 +108,12 @@ def submit_cp2k_workchain(
     # Options
     builder.cp2k.metadata.options = options
 
-    # Metadata 
+    # Metadata
     if not label:
         formula = structure.composition.to_pretty_string()
         label = f'cp2k_{formula}'
     builder.cp2k.metadata.label = label
-    
+
     # Submit
     if submit_workchain:
         workchain = submit(builder)

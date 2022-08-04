@@ -1,4 +1,6 @@
-# Collection of useful functions for vasp input
+"""
+Collection of useful functions to setup/manipulate VASP potcars
+"""
 
 import os
 import math
@@ -9,10 +11,10 @@ from monty.io import zopen
 from monty.serialization import dumpfn, loadfn
 from typing import Optional
 # Pymatgen stuff
-from pymatgen.io.vasp.inputs import Potcar 
+from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import Spin
-import pymatgen.core.structure 
+import pymatgen.core.structure
 import warnings
 from pymatgen.io.vasp.inputs import UnknownPotcarWarning
 
@@ -28,11 +30,11 @@ def get_potcar_mapping(
     structure: pymatgen.core.structure.Structure,
 ) -> dict:
     """
-    Create dictionary matching element symbol (as str) to vasp potcar name (as str) 
+    Create dictionary matching element symbol (as str) to vasp potcar name (as str)
     for the elements present in the input structure.
 
     Args:
-        structure (pymatgen.core.structure.Structure): 
+        structure (pymatgen.core.structure.Structure):
             pymatgen structure object
 
     Returns:
@@ -48,12 +50,12 @@ def get_potcar_valence_electrons(
     potcar_mapping: dict,
 ) -> dict:
     """
-    Makes a dict matching element symbol to the number of valence electrons 
+    Makes a dict matching element symbol to the number of valence electrons
     for selected pseudopotentials.
     Args:
-        potcar_mapping (dict): 
+        potcar_mapping (dict):
     Returns:
-        dict: matching element symbols to the number of valence electrons in the 
+        dict: matching element symbols to the number of valence electrons in the
         corresponding pseudopotential
     """
     symbols = list(potcar_mapping.values())
@@ -71,14 +73,14 @@ def get_potcar_from_structure(
     potcar_mapping: Optional[dict] = None,
 ) -> Potcar :
     """
-    Returns Potcar object for the elements present in your structure and 
+    Returns Potcar object for the elements present in your structure and
     the vasp potcars selected in the dictionary potcar_mapping.
 
     Args:
-        structure (pymatgen.core.structure.Structure): 
+        structure (pymatgen.core.structure.Structure):
             pymatgen Structure object
-        potcar_mapping (dict): 
-            dict matching element string to potcar symbol 
+        potcar_mapping (dict):
+            dict matching element string to potcar symbol
             (e.g. {'Pb': 'Pb_d'})
 
     Returns:
@@ -107,7 +109,7 @@ def get_potcars_from_mapping(
     """
     Returns POTCARS for the elements and POTCAR symbols given in potential mapping.
     Args:
-        potcar_mapping (dict): 
+        potcar_mapping (dict):
             matches element symbol to VASP POTCAR name, i.e {'Pb': 'Pb_d', }
     """
     symbols = list(potcar_mapping.values())
@@ -123,15 +125,15 @@ def get_number_of_electrons(
     potcar_mapping: Optional[dict] = None,
 ) -> int:
     """
-    Calculate the number of electrons for structure with chosen pseudopotentials 
+    Calculate the number of electrons for structure with chosen pseudopotentials
     (specicied in potential_mapping dict)
 
     Args:
         structure (pymatgen.core.structure.Structure):
             pymatgen structure object
-        potcar_mapping (dict): 
-            dict matching element symbol (str) to pseudopotential 
-            name (i.e: {'Sn': 'Sn_d'}) 
+        potcar_mapping (dict):
+            dict matching element symbol (str) to pseudopotential
+            name (i.e: {'Sn': 'Sn_d'})
 
     Returns:
         int: number of electrons

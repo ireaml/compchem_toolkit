@@ -1,4 +1,6 @@
-### Useful imports and functions to work with aiida
+"""
+Useful functions to work with aiida
+"""
 
 # Imports
 import os

@@ -1,4 +1,7 @@
-### Useful imports and functions to work with aiida
+"""
+Useful imports and functions to submit VASP relaxation workchains with aiida
+"""
+
 from aiida import load_profile
 from aiida.engine.processes.workchains.workchain import WorkChain
 load_profile('aiida-vasp')
@@ -32,7 +35,7 @@ from pymatgen.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.electronic_structure.core import Spin
 
 # in house vasp functions
-from vasp_toolkit.input import get_potcar_mapping 
+from vasp_toolkit.input import get_potcar_mapping
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_relax_incar.yaml"))
@@ -49,7 +52,7 @@ def submit_vasp_relax(
     label: str,
     options: dict,
     algo: str = 'cg', # Optimization algorithm, default to conjugate gradient
-    use_default_incar_settings: bool = False, 
+    use_default_incar_settings: bool = False,
     positions: bool = True,
     shape: bool = False,
     volume: bool = False,
@@ -67,29 +70,29 @@ def submit_vasp_relax(
     Submit vasp relaxation.
 
     Args:
-        structure (Structure): 
+        structure (Structure):
             _description_
-        code_string (str): 
+        code_string (str):
             _description_
         kmesh (tuple):
             _description_
-        incar_options (dict): 
+        incar_options (dict):
             _description_
-        algo (str, optional): 
+        algo (str, optional):
             Algorithm for ionic minimization: conjugate gradient (cg) or pseudo Newton(). Defaults to 'cg'.
-        defaulttoconjugategradientpositions (bool, optional): 
+        defaulttoconjugategradientpositions (bool, optional):
             _description_. Defaults to True.
-        shape (bool, optional): 
+        shape (bool, optional):
             _description_. Defaults to False.
-        volume (bool, optional): 
+        volume (bool, optional):
             _description_. Defaults to False.
-        ionic_steps (int, optional): 
+        ionic_steps (int, optional):
             _description_. Defaults to 300.
-        potential_mapping (Optional[dict], optional): 
+        potential_mapping (Optional[dict], optional):
             _description_. Defaults to None.
-        settings (Optional[dict], optional): 
+        settings (Optional[dict], optional):
             _description_. Defaults to None.
-        remote_folder (Optional[RemoteData], optional): 
+        remote_folder (Optional[RemoteData], optional):
             _description_. Defaults to None.
     Returns:
         WorkChain: aiida Workchain object
@@ -115,7 +118,7 @@ def submit_vasp_relax(
             species = structure.species,
             lattice = structure.lattice,
             coords= structure.frac_coords,
-            coords_are_cartesian= False,           
+            coords_are_cartesian= False,
         )
     sorted_structure = structure.get_sorted_structure()
     if sorted_structure != structure:
@@ -128,7 +131,7 @@ def submit_vasp_relax(
     inputs.kpoints = kpoints
 
     # Set INCAR parameters
-    default_incar_settings_copy = deepcopy(default_incar_settings) 
+    default_incar_settings_copy = deepcopy(default_incar_settings)
     if use_default_incar_settings:
         default_incar_settings_copy.update(incar_settings)
     else:
@@ -136,7 +139,7 @@ def submit_vasp_relax(
     # Check no typos in keys
     incar = Incar(default_incar_settings_copy)
     incar.check_params() # check keys
-    incar_dict = incar.as_dict() ; del incar_dict['@class'] ; del incar_dict['@module']    
+    incar_dict = incar.as_dict() ; del incar_dict['@class'] ; del incar_dict['@module']
     # Check ICHARG tag
     if incar_dict.get('ICHARG') != 2:
         if (incar_dict.get('ICHARG') in [1,11]) and (not remote_folder): # needs CHGCAR as input, so make sure we're giving it
@@ -151,7 +154,7 @@ def submit_vasp_relax(
         inputs.potential_mapping = DataFactory('dict')(dict=potential_mapping)
     else:
         inputs.potential_mapping = DataFactory('dict')(dict= get_potcar_mapping(structure = structure))
-    
+
     # Set options
     inputs.options = DataFactory('dict')(dict=options)
 
@@ -183,7 +186,7 @@ def submit_vasp_relax(
     # dynamics
     if dynamics:
         inputs.dynamics = dynamics
-        
+
     # Set workchain related inputs, in this case, give more explicit output to report
     inputs.verbose = DataFactory('bool')(True)
 

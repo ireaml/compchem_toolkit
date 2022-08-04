@@ -1,4 +1,4 @@
-# Imports
+"""Setup VASP workchain"""
 import os
 import numpy as np
 from monty.serialization import dumpfn, loadfn
@@ -27,8 +27,8 @@ from pymatgen.electronic_structure.core import Spin
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def setup_vasp_workchain(
-    structure: aiida.orm.nodes.data.structure.StructureData, 
-    incar: dict, 
+    structure: aiida.orm.nodes.data.structure.StructureData,
+    incar: dict,
     kgrid: tuple,
     potential_mapping: dict,
     code_string: str,
@@ -49,7 +49,7 @@ def setup_vasp_workchain(
     from aiida_vasp.utils.aiida_utils import get_data_node
     from aiida.common.extendeddicts import AttributeDict
     from aiida.plugins import DataFactory, WorkflowFactory
-    
+
     basevasp = WorkflowFactory('vasp.vasp')
     # Then, we set the workchain you would like to call
     workchain = WorkflowFactory('vasp.verify')
@@ -101,16 +101,16 @@ def setup_vasp_workchain(
                 'description': 'PBEsol-D3 VASP relaxation of FASI slab',
                 }
     inputs.metadata = metadata
-    
+
     # Clean Workdir
     # If True, clean the work dir upon the completion of a successfull calculation.
     inputs.clean_workdir = Bool(clean_workdir)
 
     # Dynamics for constrained relaxation
-    if dynamics: 
+    if dynamics:
         selective_dynamics = {'positions_dof' : [] }
         assert type(dynamics['positions_dof']) == list
-        selective_dynamics['positions_dof'] = List( list=dynamics['positions_dof']) 
+        selective_dynamics['positions_dof'] = List( list=dynamics['positions_dof'])
         inputs.dynamics = selective_dynamics # Dict(dict = selective_dynamics )
 
     # Chgcar and wavecar

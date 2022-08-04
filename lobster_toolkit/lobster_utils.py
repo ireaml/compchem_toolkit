@@ -27,17 +27,17 @@ mpl.rcParams['axes.unicode_minus'] = False
 
 def get_number_of_bands(
     composition: pymatgen.core.composition.Composition,
-    orbitals : dict, 
+    orbitals : dict,
     ) -> int:
     """
     Calculated the number of bands required by lobster to perform COHP analysis.
-    
+
     Args:
         composition (pymatgen.core.composition.Composition): composition of your structure
         orbitals (dict): dict matching element (as str) to a list of the valence orbitals to consider (as strings too), \
             e.g. {'H': ['s'], }.
     Returns:
-        (int): number of bands required for lobster post-processing 
+        (int): number of bands required for lobster post-processing
     """
     degeneracy = {'s': 1, 'p': 3, 'd': 5, 'f': 7}
     bands = 0
@@ -52,29 +52,29 @@ def get_number_of_bands(
 
 def get_number_of_bands_from_struct(
     structure: Structure,
-    orbitals: Dict[str: Dict] = None
+    orbitals: Dict = None,
 ) -> int:
     """
-    Calculates the number of electronic bands required in the SCF calc for a 
+    Calculates the number of electronic bands required in the SCF calc for a
     latter lobster calculation.
 
     Args:
-        structure (Structure): 
+        structure (Structure):
             pymatgen.core.structure.Structure object
-        orbitals (dict, optional): 
-            Dict matching element to the pseudopotential valence orbitals 
+        orbitals (dict, optional):
+            Dict matching element to the pseudopotential valence orbitals
             (i.e. {"Cd": {"s", "p"}})
             Defaults to None.
 
     Returns:
         int: _description_
     """
-    if not orbitals: 
+    if not orbitals:
         orbitals = get_valence_orbitals_from_potcar(
             potcar = get_potcar_from_structure(structure = structure)
             )
-    return get_number_of_bands( 
-        structure.composition, 
+    return get_number_of_bands(
+        structure.composition,
         orbitals,
     )
 
@@ -113,7 +113,7 @@ def get_labels_by_elements(
 def calculate_mean_icohp(
     icohpcollection,
     structure: pymatgen.core.structure.Structure,
-    element_1: str, 
+    element_1: str,
     element_2: str,
     maxbondlength = 3.5,
     are_cobis = False,
@@ -123,19 +123,19 @@ def calculate_mean_icohp(
     Calculate mean ICOHP between two elements in your structure.
 
     Args:
-        icohpcollection ([type]): 
-        structure (pymatgen.core.structure.Structure): 
+        icohpcollection ([type]):
+        structure (pymatgen.core.structure.Structure):
             pymatgen Structure object
-        element_1 (str): 
+        element_1 (str):
             symbol of element 1
-        element_2 (str): 
+        element_2 (str):
             symbol of element 2
-        maxbondlength (float): 
-            maximum bond length to consider bonds between element_1 and element_2. 
+        maxbondlength (float):
+            maximum bond length to consider bonds between element_1 and element_2.
             Default to 3.5 A.
         are_cobis (bool, optional):
             Defaults to False.
-        verbose (bool): 
+        verbose (bool):
             Whether to print all ICOHP values for the bonds between the selected elements
             Defaults to False.
     Returns:
@@ -154,7 +154,7 @@ def calculate_mean_icohp(
     for index_site in indexes_element_1:
         # grab icohp by index
         icohp_element_1_element_2 = icohpcollection.get_icohp_dict_of_site(
-            site = index_site, minbondlength = 0.0, maxbondlength = maxbondlength, only_bonds_to = [element_2] 
+            site = index_site, minbondlength = 0.0, maxbondlength = maxbondlength, only_bonds_to = [element_2]
             )
         for key, icohp in (icohp_element_1_element_2.items()):
             #print(key+':'+ str(icohp.icohp))
@@ -173,41 +173,41 @@ def plot_cohp_for_label_list(
     selected_labels: list,
     xlim: list = [-40, 40],
     ylim: list = [-10, 5],
-    fill: Optional[bool] = True, 
+    fill: Optional[bool] = True,
     spin_legend: Optional[bool] = True,
     figure_path : str = None,
     ) -> tuple:
     """
     Convenient function to plot COHP for a list of (bond) labels.
     Adapted from original function by Seán R. Kavanagh.
-    
+
     Args:
-        complete_cohp (CompleteCohp): 
+        complete_cohp (CompleteCohp):
             pymatgen.electronic_structure.cohp.CompleteCohp object
-        selected_labels (list): 
+        selected_labels (list):
             List of labels of the bonds to include in the plot.
-        xlim (list, optional): 
+        xlim (list, optional):
             Limits for x axis (COHP/bond (eV)). Defaults to [-40, 40].
-        ylim (list, optional): 
+        ylim (list, optional):
             Limits for y axis (Energy - E_fermi (eV)). Defaults to [-10, 5].
-        fill (bool, optional): 
+        fill (bool, optional):
             whether to fill the COHP region with a color according to bonding/antibonding. Defaults to True.
         spin_legend (bool, optional):
             whether to add spin legend to the plot. Defaults to True.
-        figure_path (str, optional): 
+        figure_path (str, optional):
             filename to save the figure as, including formar (e.g. './my_plot.svg'). Defaults to None.
     Returns:
         mpl.axes.Axes: matplotlib axes object
     """
     cp = CohpPlotter()
-    
+
     # search for the number of the COHP you would like to plot in ICOHPLIST.lobster (the numbers in COHPCAR.lobster are different!)
     label_list = [str(i) for i in selected_labels]
     divisor = len(label_list) # number of bonds
-    cp.add_cohp( 
-        "Total COHP", 
+    cp.add_cohp(
+        "Total COHP",
         complete_cohp.get_summed_cohp_by_label_list(
-            label_list = label_list, 
+            label_list = label_list,
             divisor = divisor
             ),
         )
@@ -234,17 +234,17 @@ def plot_cohp_for_label_list(
     element_1 = complete_cohp.bonds[label]['sites'][0].species_string
     element_2 = complete_cohp.bonds[label]['sites'][1].species_string
     plt.annotate(
-        f"COHP({element_1}-{element_2})", ha="center", color="k", xy=(0.75, 0.9), 
-        xycoords='axes fraction', fontsize = 20, 
+        f"COHP({element_1}-{element_2})", ha="center", color="k", xy=(0.75, 0.9),
+        xycoords='axes fraction', fontsize = 20,
         bbox=dict(boxstyle="round", ec=(1., 0.5, 0.5), fc=(1., 0.8, 0.8))
         )
     plt.annotate(
-        r"Bonding", ha="right", color="tab:blue", xy=(0.95, 0.05), 
+        r"Bonding", ha="right", color="tab:blue", xy=(0.95, 0.05),
         xycoords='axes fraction', fontsize = 20,
         bbox=dict(boxstyle="round", fc="tab:blue", alpha=0.15)
         )
     plt.annotate(
-        r"Anti-Bonding", ha="left", color="tab:orange", xy=(0.05, 0.05), 
+        r"Anti-Bonding", ha="left", color="tab:orange", xy=(0.05, 0.05),
         xycoords='axes fraction', fontsize = 20,
         bbox=dict(boxstyle="round", fc="tab:orange", alpha=0.15)
         )
@@ -261,13 +261,13 @@ def plot_cohp_for_label_list(
             xrangeab = [xnew[i] for i in range(len(ynew)) if xnew[i] < 0]
             ax.fill_betweenx(yrangeb, 0, xrangeb, color="tab:blue", alpha=0.3) # alpha=0.5
             ax.fill_betweenx(yrangeab, 0, xrangeab, color="tab:orange", alpha=0.3) # alpha=0.5
-    
+
     # Axis labels and tick formatting
     plt.xlabel("-COHP per bond (eV)",  fontsize = 25)
     plt.ylabel("$E$ - $E_f$ (eV)",  fontsize = 25)
     plt.locator_params(axis='x', nbins=5) ; plt.locator_params(axis='y', nbins=7)
     plt.xticks(fontsize= 20) ; plt.yticks(fontsize= 20)
-    
+
     if figure_path:
         plt.savefig(figure_path, bbox_inches="tight", dpi=600)
     return (fig, ax)

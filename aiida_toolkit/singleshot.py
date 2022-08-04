@@ -1,4 +1,7 @@
-### Useful imports and functions to work with aiida
+"""
+Useful imports and functions to submit VASP singleshot workchains with aiida
+"""
+
 from aiida import load_profile
 from aiida.engine.processes.workchains.workchain import WorkChain
 load_profile('aiida-vasp')
@@ -31,7 +34,7 @@ from pymatgen.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.electronic_structure.core import Spin
 
 # in house vasp functions
-from vasp_toolkit.input import get_potcar_mapping 
+from vasp_toolkit.input import get_potcar_mapping
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 incar_settings_vasp_ncl = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_incar_vasp_ncl_singleshot.yaml"))
@@ -48,8 +51,8 @@ def submit_vasp_singleshot(
     incar_settings: dict,
     label: str,
     options: dict,
-    use_default_incar_settings: bool = False, 
-    spin_orbit: bool = False, 
+    use_default_incar_settings: bool = False,
+    spin_orbit: bool = False,
     functional: str = 'HSE06',
     potential_mapping: Optional[dict]=None,
     settings: Optional[dict]=None,
@@ -61,24 +64,24 @@ def submit_vasp_singleshot(
     """_summary_
 
     Args:
-        structure (Structure): 
+        structure (Structure):
             _description_
         code_string (str):
             _description_
-        kmesh (tuple): 
+        kmesh (tuple):
             _description_
-        incar_options (dict): 
+        incar_options (dict):
             _description_
-        use_default_incar_settings (bool): 
+        use_default_incar_settings (bool):
             whether to update the default INCAR settings with the user defined ones
-        potential_mapping (Optional[dict], optional): 
+        potential_mapping (Optional[dict], optional):
             _description_. Defaults to None.
-        settings (Optional[dict], optional): 
+        settings (Optional[dict], optional):
             _description_. Defaults to None.
-        label (str): 
+        label (str):
             label for the workchain node
-        spin_orbit (bool): 
-            whether to include spin-orbit coupling 
+        spin_orbit (bool):
+            whether to include spin-orbit coupling
     Returns:
         WorkChain: _description_
     """
@@ -115,9 +118,9 @@ def submit_vasp_singleshot(
         'PBE0':  {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0.25},
         }
     if spin_orbit:
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl ) 
-    else: 
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_std ) 
+        default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl )
+    else:
+        default_incar_settings_copy = deepcopy(incar_settings_vasp_std )
     if functional != 'HSE06': # Our default incar settings specify HSE06
         default_incar_settings_copy.update(functionals[functional])
     if use_default_incar_settings: # Update the default settings with the user-defined settings
@@ -142,7 +145,7 @@ def submit_vasp_singleshot(
         inputs.potential_mapping = DataFactory('dict')(dict = potential_mapping)
     else:
         inputs.potential_mapping = DataFactory('dict')(dict = get_potcar_mapping(structure = structure))
-    
+
     # Set options
     inputs.options = DataFactory('dict')(dict = options)
 
@@ -164,7 +167,7 @@ def submit_vasp_singleshot(
 
     # Metadata
     if not label:
-        formula = structure.formula.replace(' ', '') 
+        formula = structure.formula.replace(' ', '')
         label = f'scf_{formula}'
     inputs.metadata = {'label': label}
 
@@ -178,7 +181,7 @@ def submit_vasp_singleshot(
         inputs.wavecar = wavecar
     if remote_folder:
         inputs.restart_folder = remote_folder
-    
+
     # Clean Workdir
     # If True, clean the work dir upon the completion of a successfull calculation.
     inputs.clean_workdir = Bool(clean_workdir)

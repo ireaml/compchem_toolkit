@@ -1,3 +1,4 @@
+"""Functions to parse the output of aiida calculations"""
 import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ from vasp_toolkit.output import plot_dos
 def get_vasprun_from_pk(
     pk: int,
     remove_file: bool = True,
-    vasprun_type: str = 'Vasprun' 
+    vasprun_type: str = 'Vasprun'
 ) -> pymatgen.io.vasp.outputs.Vasprun:
     """_summary_
 
@@ -80,12 +81,12 @@ def get_outcar_from_pk(
     From pk, returns the associated Outcar object
 
     Args:
-        pk (int): 
+        pk (int):
             pk of aiida node
-        remove_file (bool, optional): 
+        remove_file (bool, optional):
             Whether to remove the file after reading it. Defaults to True.
         folder_name (str, optional):
-            Name of folder to store the file. 
+            Name of folder to store the file.
             Defaults to './outcars'
     Returns:
         outcar: Outcar object
@@ -94,7 +95,7 @@ def get_outcar_from_pk(
     if not node.outputs.misc['run_status']['finished']:
         warnings.warn( "Calculation didnt finished OK!")
     label = node.label
-    # Read 
+    # Read
     assert 'OUTCAR' in node.outputs.retrieved.list_object_names()
     outcar_content = node.outputs.retrieved.get_object_content('OUTCAR')
     if not folder_name:
@@ -152,11 +153,11 @@ def get_dos_from_pk(
         if not os.path.exists(vasprun_path):
             with open(vasprun_path, 'w') as ff:
                 ff.write(vasprun_content)
-                
+
     # If user didnt specify orbitals, use valence orbitals of POTCAR
     if not elements_orbitals:
         struct = node.inputs.structure.get_pymatgen()
-        elements_orbitals = get_valence_orbitals_from_potcar( 
+        elements_orbitals = get_valence_orbitals_from_potcar(
             potcar = get_potcar_from_structure(structure = struct)
         )
     myplot = plot_dos(
@@ -176,7 +177,7 @@ def transfer_chgcar(
     remote_computer: str = None,
 ) -> str:
     """
-    Transfer the CHGCAR file from the remote computer where the aiida calculation was run. 
+    Transfer the CHGCAR file from the remote computer where the aiida calculation was run.
     """
     node = load_node(pk)
     assert node.outputs.remote_folder.attributes["remote_path"], f"No remote path for pk {pk}"
@@ -228,7 +229,7 @@ def transfer_vasp_files(
     remote_path = node.outputs.remote_folder.attributes["remote_path"]
     node_label = node.label
     paths_to_return = []
-    
+
     # Local path
     abs_path = os.getcwd()
     if not folder_name:
@@ -238,12 +239,12 @@ def transfer_vasp_files(
     if not os.path.exists(f'{folder_name}'):
         os.mkdir(f"{folder_name}")
     # Transfer
-    for vasp_file in list_of_files: 
+    for vasp_file in list_of_files:
         if folder_name == "VASP_files":
             file_path = f"{folder_name}/{node_label}_{vasp_file}"
         else:
             file_path = f"{folder_name}/{vasp_file}"
-        
+
         shell_output = subprocess.run([
             "rsync", "-azvus", f"{remote_computer}:{remote_path}/{vasp_file}", f"{file_path}"
         ])
