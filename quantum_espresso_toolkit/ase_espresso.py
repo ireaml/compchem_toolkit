@@ -2,6 +2,8 @@
 Parse structure/output information from Quantum Espresso output file
 Much of this has been adapted from ase.io.espresso.
 """
+# TODO: Clean up this file
+
 import warnings
 from copy import copy
 
@@ -38,10 +40,10 @@ def read_espresso_structure(
     Reads a structure from Quantum Espresso output file and returns it
     as a pymatgen Structure. Units must be in Angstrom.
     Args:
-        filename (str): 
+        filename (str):
             Path to your file
     Returns:
-        pymatgen.core.structure.Structure: 
+        pymatgen.core.structure.Structure:
     """
     # ase.io.espresso functions seem a bit buggy, so we use the following implementation
     if os.path.exists(filename):
@@ -53,9 +55,9 @@ def read_espresso_structure(
         if "End final coordinates" in file_content:
             file_content = file_content.split("End final coordinates")[0] # last geometry
         cell_lines = [
-            line for line in 
+            line for line in
             file_content.split("CELL_PARAMETERS (angstrom)")[1].split(
-                'ATOMIC_POSITIONS (angstrom)')[0].split("\n") 
+                'ATOMIC_POSITIONS (angstrom)')[0].split("\n")
             if line != "" and line != " " and line != "   "
         ]
         atomic_positions = file_content.split("ATOMIC_POSITIONS (angstrom)")[1]
@@ -71,7 +73,7 @@ def read_espresso_structure(
             [float(entry) for entry in line[1:4]] for line in atomic_positions_processed
         ]
         symbols = [
-            entry[0] for entry in atomic_positions_processed 
+            entry[0] for entry in atomic_positions_processed
             if entry != "" and entry != " " and entry != "  "
         ]
         # Check parsing is ok
@@ -83,7 +85,7 @@ def read_espresso_structure(
             positions=coordinates,
             cell=cell_lines_processed,
             pbc=True,
-            
+
         )
         aaa = AseAtomsAdaptor()
         structure = aaa.get_structure(atoms)
@@ -96,7 +98,7 @@ def read_espresso_structure(
         structure = "Not converged"
     return structure
 
-    
+
 def get_indexes(
     pwo_lines,
 ) -> dict:
@@ -104,9 +106,9 @@ def get_indexes(
     Parse Quantum Espresso output file and return a dictionary with the indexes
     of the lines where the different information is printed.
     Adapted from ase.io.espresso.
-    
+
     Args:
-        pwo_lines (list): 
+        pwo_lines (list):
             list of lines from Quantum Espresso output file
 
     Returns:
@@ -173,7 +175,7 @@ def parse_bands(
         # Occupation string separates eigenvalues from occupations
         elif 'occupation' in line:
             occupation_indexes.update({copy(number_of_kpoint-1): copy(index)})
-    
+
     for number_of_kpoint, kpoint_info in kpoint_indexes.items():
         kpoint = kpoint_info[0]
         kpoint_index = kpoint_info[1]
@@ -196,7 +198,7 @@ def format_bands(
     # Loop over kpoints
     for kpoint, value in bands.items():
         energies = []
-        # Loop over all energy and occupation 
+        # Loop over all energy and occupation
         # print("Len of energies", len(value['energies']))
         # print("Len of occupations", len(value['occupations']))
         for energy_line, occupation_line in zip(value['energies'], value['occupations']):

@@ -14,54 +14,54 @@ from pymatgen.io.vasp.outputs import Wavecar, Poscar, Structure
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 @click.command(
-    name="gen-parch",
+    name="make-parch",
     no_args_is_help=True,
     context_settings=CONTEXT_SETTINGS,
 )
 @click.option(
     "--wavecar",
     "-w",
-    help="Path to POSCAR file",
-    type=click.Path(exists=True, dir_okay=True),
-    default=".",
+    help="Path to WAVECAR file. Defaults to './WAVECAR'",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+    default="./WAVECAR",
 )
 @click.option(
     "--contcar",
     "-c",
-    help="Path to CONTCAR file",
-    type=click.Path(exists=True, dir_okay=True),
-    default=".",
+    help="Path to POSCAR/CONTCAR file. Defaults to './CONTCAR'",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+    default="./CONTCAR",
 )
 @click.option(
     "--band_index",
     "-b",
-    help="VASP Band index",
+    help="Index of band to analyse.",
     type=int,
 )
 @click.option(
     "--filename",
     "-f",
-    help="Filename of PARCHG file that will be generated."
+    help="Filename for the PARCHG file that will be generated."
     "Default to PARCHG_band_{band_index}",
     type=str,
 )
 @click.option(
     "--kpoint",
     "-k",
-    help="Index of kpoint",
+    help="Index of the kpoint to generate the partial charge density for.",
     type=int,
 )
 @click.option(
     "--spin",
     "-s",
-    help="Spin up (0) or down (1)",
+    help="Spin up (0) or down (1).",
     type=int,
     default=0,
 )
 @click.option(
     "--phase",
     "-p",
-    help="Show phase changes in density, if present",
+    help="Show phase changes in density, if present.",
     type=bool,
     default=False,
 )
@@ -69,7 +69,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     "--vasp_type",
     "-v",
     help="Type of vasp executable ('gam', 'std' or 'ncl')."
-    "Defaults to 'std'",
+    "Defaults to 'std'.",
     type=str,
     default="std",
 )
