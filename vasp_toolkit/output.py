@@ -34,15 +34,20 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 # In-house stuff
 from vasp_toolkit.potcar import get_potcar_from_structure, get_valence_orbitals_from_potcar
 
+# Helper functions
+def _bold_print(string: str) -> None:
+    """Prints the input string in bold."""
+    print("\033[1m" + string + "\033[0m")
+
 def analyse_procar(
     bsvasprun: BSVasprun,
     list_of_atom_indexes: list,
     threshold: float = 0.06,
     verbose: bool= True,
 ) -> DataFrame:
-    """ 
+    """
     Determines the energy states localized in the atoms speficied in list_of_atom_indexes.
-    
+
     Args:
         bsvasprun (BSVasprun):
             pymatgen.io.vasp.outputs.BSVasprun object
@@ -50,10 +55,10 @@ def analyse_procar(
             list of site indexes for which to determine their energy states
         threshold (float, optional):
             threshold for the site projection of the orbital. Only orbitals with \
-            higher projections on all sites in `list_of_atom_indexes` will be returned. 
+            higher projections on all sites in `list_of_atom_indexes` will be returned.
             Defaults to 0.06.
         verbose (bool, optional):
-            Whether to print the energy states. 
+            Whether to print the energy states.
             Defaults to True.
     Returns:
         DataFrame
@@ -72,20 +77,21 @@ def analyse_procar(
             atom_projections = {}
             for atom_index in list_of_atom_indexes: # Filter projections of selected sites
                 atom_projections[atom_index] = round(
-                    sum(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band][atom_index]), 
+                    sum(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band][atom_index]),
                     3,
-                )                                         
+                )
 
             if all(
                 atom_projection > threshold # projection higher than threshold for all sites
                 for atom_projection in atom_projections.values()
             ):
                 selected_bands[band][kpoint] = {
-                    index: round(sum(value), 3) for index, value in enumerate(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band]) 
-                     if sum(value) > threshold
+                    index: round(sum(value), 3)
+                    for index, value in enumerate(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band])
+                    if sum(value) > threshold
                 } # add sites with significant contributions
                 if verbose:
-                    print("Band: ", band, "Kpoint: ", kpoint)
+                    _bold_print(f"Band: {band}. Kpoint: {kpoint}")
                     print(selected_bands[band][kpoint])
                     print("-------")
     df = pd.DataFrame.from_dict(selected_bands)
@@ -116,10 +122,10 @@ def plot_dos(
     """
     # If user didnt specify orbitals, use valence orbitals of POTCAR
     if not elements_orbitals:
-        elements_orbitals = get_valence_orbitals_from_potcar( 
+        elements_orbitals = get_valence_orbitals_from_potcar(
             potcar = get_potcar_from_structure(structure = structure)
         )
-    # Load DOS and plot 
+    # Load DOS and plot
     dos, pdos = load_dos(
         vasprun = vasprun_path,
         elements = elements_orbitals,
@@ -130,7 +136,7 @@ def plot_dos(
         dos = dos,
         pdos = pdos,
     )
-    myplot = sdosplotter.get_plot( 
+    myplot = sdosplotter.get_plot(
         xmin= xmin,
         xmax= xmax,
         fonts = ['Whitney Light', 'Whitney Book']
@@ -139,24 +145,27 @@ def plot_dos(
 
 
 def make_parchg(
-    wavecar: str, 
-    contcar: str, 
-    vasp_band_index: int, 
-    parchg_filename: Optional[str] = None, 
-    spin: int = 0, 
-    kpoint: int=0, 
+    wavecar: str,
+    contcar: str,
+    vasp_band_index: int,
+    parchg_filename: Optional[str] = None,
+    spin: int = 0,
+    kpoint: int=0,
     phase: bool=False,
     vasp_type: str='std', # or ncl or gam
 ) -> None:
+    """Generate partial charge density file of a given band and
+    kpoint from VASP WAVECAR file.
+    """
     if not parchg_filename:
         parchg_filename = f'./PARCHG_band_{vasp_band_index}'
     my_wavecar = Wavecar(filename=wavecar, vasp_type=vasp_type) # or std or gam
     my_poscar = Poscar(Structure.from_file(contcar))
     my_parchg = my_wavecar.get_parchg(
-        my_poscar, 
-        kpoint=kpoint, # first kpoint (Gamma in this case) 
+        my_poscar,
+        kpoint=kpoint, # first kpoint (Gamma in this case)
         band=vasp_band_index-1, # convert from python to vasp indexing
         spin=spin, # 0 = up, 1 = down
         phase=phase # show phase changes in density if present
-        ) 
+    )
     my_parchg.write_file(f"{parchg_filename}.vasp")
