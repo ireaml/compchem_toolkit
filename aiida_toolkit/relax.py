@@ -24,6 +24,8 @@ from aiida.engine import run, submit
 from aiida_vasp.data.chargedensity import ChargedensityData
 from aiida_vasp.data.wavefun import WavefunData
 from aiida.orm.nodes.data.remote.base import RemoteData
+from aiida.tools.groups import GroupPath
+path = GroupPath()
 FolderData = DataFactory('folder')
 
 # pymatgen
@@ -65,6 +67,7 @@ def submit_vasp_relax(
     remote_folder: Optional[RemoteData] = None,
     clean_workdir: Optional[bool] = False,
     dynamics: Optional[dict] = None,
+    group_label: Optional[str] = None,
 ) -> WorkChain:
     """
     Submit vasp relaxation.
@@ -94,6 +97,8 @@ def submit_vasp_relax(
             _description_. Defaults to None.
         remote_folder (Optional[RemoteData], optional):
             _description_. Defaults to None.
+        group_label (Optional[str], optional):
+            Group label to save the node to.
     Returns:
         WorkChain: aiida Workchain object
     """
@@ -232,5 +237,16 @@ def submit_vasp_relax(
 
     # Submit the requested workchain with the supplied inputs
     workchain = submit(workchain, **inputs)
-    print(f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}")
+
+    if group_label:
+        group = path[group_label].get_or_create_group()
+        group = path[group_label].get_group()
+        group.add_nodes(workchain)
+        print(
+            f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}, "
+            f"stored in group with label {group_label}"
+        )
+    else:
+        print(f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}")
+
     return workchain

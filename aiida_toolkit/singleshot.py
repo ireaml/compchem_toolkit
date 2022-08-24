@@ -21,10 +21,12 @@ from aiida.common.extendeddicts import AttributeDict
 from aiida.orm import Code, Dict, Bool, WorkChainNode
 from aiida.plugins import DataFactory, WorkflowFactory
 from aiida.engine import run, submit
-FolderData = DataFactory('folder')
 from aiida_vasp.data.chargedensity import ChargedensityData
 from aiida_vasp.data.wavefun import WavefunData
 from aiida.orm.nodes.data.remote.base import RemoteData
+from aiida.tools.groups import GroupPath
+path = GroupPath()
+FolderData = DataFactory('folder')
 
 # pymatgen
 from pymatgen.core.structure import Structure
@@ -60,6 +62,7 @@ def submit_vasp_singleshot(
     wavecar: Optional[WavefunData] = None,
     remote_folder: Optional[RemoteData]=None,
     clean_workdir: Optional[bool] = False,
+    group_label: Optional[str] = None,
 ) -> WorkChain:
     """_summary_
 
@@ -82,6 +85,8 @@ def submit_vasp_singleshot(
             label for the workchain node
         spin_orbit (bool):
             whether to include spin-orbit coupling
+        group_label (Optional[str], optional):
+            Group label to save the node to.
     Returns:
         WorkChain: _description_
     """
@@ -188,5 +193,16 @@ def submit_vasp_singleshot(
 
     # Submit the requested workchain with the supplied inputs
     workchain = submit(workchain, **inputs)
-    print(f"Submitted singleshot workchain with pk: {workchain.pk}")
+
+    if group_label:
+        group = path[group_label].get_or_create_group()
+        group = path[group_label].get_group()
+        group.add_nodes(workchain)
+        print(
+            f"Submitted singleshot workchain with pk: {workchain.pk} and label {workchain.label}, "
+            f"stored in group with label {group_label}"
+        )
+    else:
+        print(f"Submitted singleshot workchain with pk: {workchain.pk}")
+
     return workchain

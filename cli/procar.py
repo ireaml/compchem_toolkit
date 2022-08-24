@@ -45,7 +45,8 @@ def analyse_procar(
     verbose: bool= True,
 ) -> None:
     """
-    Determines the energy states localized in the atoms speficied in atoms.
+    Determines the energy states localized in the atoms speficied with
+    the `--atoms` option.
 
     Args:
         vasprun (str):
