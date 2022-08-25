@@ -167,7 +167,7 @@ def get_dos_from_pk(
         xmin= xmin,
         xmax= xmax,
     )
-    if remove_file and os.file.exists(vasprun_path):
+    if remove_file and os.path.exists(vasprun_path):
         os.remove(vasprun_path) # delete vasprun file after plotting DOS
     return myplot
 
