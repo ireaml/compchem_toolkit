@@ -8,14 +8,14 @@ def get_layer_sites(
     epsilon: float,
 ):
     """
-    Returns sites in top and bottom layer of slab. These are selected as those whose 
+    Returns sites in top and bottom layer of slab. These are selected as those whose
     z coordinate lies between the top/bottom of slab and top-epsilon/bottom+epsilon.
 
     Args:
-        structure (pymatgen.core.structure.Structure): 
+        structure (pymatgen.core.structure.Structure):
             pymatgen Structure object of slab
-        epsilon (float): 
-            Length from top/bottom of slab to select the sites that lie within 
+        epsilon (float):
+            Length from top/bottom of slab to select the sites that lie within
             (i.e. sites within top/bottom surface of slab +- epsilon)
 
     Returns:
@@ -34,9 +34,9 @@ def get_structure_from_slab(
 ) -> Structure:
     """
     Transform pymatgen slab to pymatgen structure
-    
+
     Args:
-        slab (Slab): 
+        slab (Slab):
             pymatgen.core.surface.Slab object
 
     Returns:
