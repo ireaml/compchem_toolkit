@@ -118,7 +118,7 @@ def submit_vasp_singleshot(
     # Set INCAR parameters
     # Dictionary matching common functionals to their INCAR tags
     functionals = {
-        'PBE':   {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0},
+        'PBE':   {'LHFCALC': False, 'HFSCREEN': 0, 'AEXX': 0},
         'HSE06': {'LHFCALC': True, 'HFSCREEN': 0.2, 'AEXX': 0.25},
         'PBE0':  {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0.25},
         }
@@ -132,6 +132,15 @@ def submit_vasp_singleshot(
         default_incar_settings_copy.update(incar_settings) # update with user parameers
     else: # Use the user-defined settings
         default_incar_settings_copy = deepcopy(incar_settings)
+    # Check IVDW parameters for HSE06
+    if default_incar_settings_copy.get("LHFCALC") == True:
+        if default_incar_settings_copy.get("AEXX") != 0.0:
+            default_incar_settings_copy.update(
+                {
+                    "VDW_S8": 0.928,
+                    "VDW_SR": 1.287,
+                }
+            )  # From https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/functionals
     # Check no typos in keys
     incar = Incar(default_incar_settings_copy)
     incar.check_params() # check keys
