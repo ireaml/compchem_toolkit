@@ -133,7 +133,7 @@ def get_dos_from_pk(
         gaussian (float, optional): _description_. Defaults to 0.06.
         xmin (float, optional): _description_. Defaults to -3.0.
         xmax (float, optional): _description_. Defaults to 3.0.
-        kaargs (dict, optional): _description_. Defaults to {}.
+        kwargs (dict, optional): _description_. Defaults to {}.
 
     Returns:
         _type_: _description_
@@ -166,6 +166,7 @@ def get_dos_from_pk(
         gaussian = gaussian,
         xmin= xmin,
         xmax= xmax,
+        **kwargs,
     )
     if remove_file and os.path.exists(vasprun_path):
         os.remove(vasprun_path) # delete vasprun file after plotting DOS

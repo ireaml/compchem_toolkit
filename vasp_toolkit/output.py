@@ -105,6 +105,7 @@ def plot_dos(
     gaussian: Optional[float] = 0.06,
     xmin: Optional[float] = -3.0,
     xmax: Optional[float] = 3.0,
+    **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
 ) -> matplotlib.axes.Axes:
     """
     Quickly plot orbital projected DOS using SUMO.
@@ -116,6 +117,7 @@ def plot_dos(
         gaussian (Optional[float], optional): _description_. Defaults to 0.06.
         xmin (Optional[float], optional): _description_. Defaults to -3.0.
         xmax (Optional[float], optional): _description_. Defaults to 3.0.
+        kwargs (dict, optional): _description_. Defaults to {}.
 
     Returns:
         matplotlib.axes.Axes
@@ -139,8 +141,9 @@ def plot_dos(
     myplot = sdosplotter.get_plot(
         xmin= xmin,
         xmax= xmax,
-        fonts = ['Whitney Light', 'Whitney Book']
-        )
+        fonts = ['Whitney Light', 'Whitney Book'],
+        **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
+    )
     return myplot
 
 
