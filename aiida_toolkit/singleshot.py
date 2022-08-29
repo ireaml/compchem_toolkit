@@ -90,6 +90,48 @@ def submit_vasp_singleshot(
     Returns:
         WorkChain: _description_
     """
+    def check_number_of_bands(
+        structure,
+        default_incar_settings_copy,
+    ):
+        """Check if bands have been doubled for spin orbit coupling"""
+        if default_incar_settings_copy.get("LSORBIT") == True:
+            if default_incar_settings_copy.get("NBANDS") < 2*default_nbands:
+                if default_incar_settings_copy.get("NELECT"):
+                    nelect = default_incar_settings_copy.get("NELECT")
+                else:
+                    nelect = None
+                default_nbands = input.get_default_number_of_bands(
+                    structure=structure,
+                    number_of_electrons=nelect,
+                )
+                default_incar_settings_copy.update(
+                    {"NBANDS": 2*default_nbands + 5}
+                )
+        return default_incar_settings_copy
+
+    def check_vdw_parameters(
+        default_incar_settings_copy,
+    ):
+        """Check IVDW parameters for HSE06/PBE0"""
+        if default_incar_settings_copy.get("LHFCALC") == True:
+            if default_incar_settings_copy.get("AEXX") != 0.0:
+                default_incar_settings_copy.update(
+                    {
+                        "VDW_S8": 0.928,
+                        "VDW_SR": 1.287,
+                    }
+                )  # From https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/functional
+        return default_incar_settings_copy
+
+    def check_icharg(incar_dict):
+        """Check ICHARG tag"""
+        if incar_dict.get('ICHARG') != 2:
+            if incar_dict.get('ICHARG') in [1, 11]: # needs CHGCAR as input, so make sure we're giving it
+                assert chgcar is not None, "CHGCAR is required for ICHARG = 1 or 11"
+            if incar_dict.get('ICHARG') == 0: # needs WAVECAR as input, so make sure we're giving it
+                assert wavecar is not None, "WAVECAR is required for ICHARG = 0"
+
     # We set the workchain you would like to call
     basevasp = WorkflowFactory('vasp.vasp')
     # Then, we set the workchain you would like to call
@@ -123,34 +165,32 @@ def submit_vasp_singleshot(
         'PBE0':  {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0.25},
         }
     if spin_orbit:
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl )
+        default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl)
     else:
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_std )
-    if functional != 'HSE06': # Our default incar settings specify HSE06
+        default_incar_settings_copy = deepcopy(incar_settings_vasp_std)
+    if functional:
         default_incar_settings_copy.update(functionals[functional])
     if use_default_incar_settings: # Update the default settings with the user-defined settings
-        default_incar_settings_copy.update(incar_settings) # update with user parameers
+        default_incar_settings_copy.update(incar_settings)
     else: # Use the user-defined settings
         default_incar_settings_copy = deepcopy(incar_settings)
+
     # Check IVDW parameters for HSE06
-    if default_incar_settings_copy.get("LHFCALC") == True:
-        if default_incar_settings_copy.get("AEXX") != 0.0:
-            default_incar_settings_copy.update(
-                {
-                    "VDW_S8": 0.928,
-                    "VDW_SR": 1.287,
-                }
-            )  # From https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/functionals
+    default_incar_settings_copy = check_vdw_parameters(default_incar_settings_copy)
+    # If LSORBIT, check if bands have been doubled:
+    default_incar_settings_copy = check_number_of_bands(
+        structure,
+        default_incar_settings_copy
+    )
+
     # Check no typos in keys
     incar = Incar(default_incar_settings_copy)
     incar.check_params() # check keys
-    incar_dict = incar.as_dict() ; del incar_dict['@class'] ; del incar_dict['@module']
+    incar_dict = incar.as_dict()
+    del incar_dict['@class'] ; del incar_dict['@module']
+
     # Check ICHARG tag
-    if incar_dict.get('ICHARG') != 2:
-        if incar_dict.get('ICHARG') in [1,11]: # needs CHGCAR as input, so make sure we're giving it
-            assert chgcar is not None, "CHGCAR is required for ICHARG = 1 or 11"
-        if incar_dict.get('ICHARG') == 0: # needs WAVECAR as input, so make sure we're giving it
-            assert wavecar is not None, "WAVECAR is required for ICHARG = 0"
+    check_icharg(incar_dict)
     inputs.parameters = DataFactory('dict')(dict= {'incar': incar_dict})
 
     # Set potentials and their mapping. If user does not specify them, we use the VASP recommended ones
