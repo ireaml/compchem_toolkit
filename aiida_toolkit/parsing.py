@@ -192,9 +192,34 @@ def transfer_chgcar(
     ])
     if shell_output.returncode == 0:
         print(f"Saved CHGCAR as {abs_path}/CHGCARS/{node_label}_CHGCAR")
+        return f"{abs_path}/CHGCARS/{node_label}_CHGCAR"
     else:
         print(f"Error in tranfer_chgcar: {shell_output}")
-    return f"{abs_path}/CHGCARS/{node_label}_CHGCAR"
+
+
+def transfer_wavecar(
+    pk: int,
+    remote_computer: str = None,
+) -> str:
+    """
+    Transfer the WAVECAR file from the remote computer where the aiida calculation was run.
+    """
+    node = load_node(pk)
+    assert node.outputs.remote_folder.attributes["remote_path"], f"No remote path for pk {pk}"
+    remote_path = node.outputs.remote_folder.attributes["remote_path"]
+    node_label = node.label
+    abs_path = os.getcwd()
+
+    if not os.path.exists('./WAVECARS'):
+        os.mkdir('./WAVECARS')
+    shell_output = subprocess.run([
+        "rsync", "-azvus", f"{remote_computer}:{remote_path}/WAVECAR", f"{abs_path}/WAVECARS/{node_label}_WAVECAR"
+    ])
+    if shell_output.returncode == 0:
+        print(f"Saved WAVECAR as {abs_path}/WAVECARS/{node_label}_WAVECAR")
+        return f"{abs_path}/WAVECARS/{node_label}_WAVECAR"
+    else:
+        print(f"Error in tranfer wavecar: {shell_output}")
 
 
 def parse_chgcar(
@@ -215,6 +240,17 @@ def get_charge_density_data_from_pk(
     """
     filename = transfer_chgcar(pk = pk, remote_computer = remote_computer)
     return ChargedensityData(filename)
+
+
+def get_wavefunction_data_from_pk(
+    pk: int,
+    remote_computer: str = None,
+) -> WavefunData:
+    """
+    Returns the ChargedensityData object from the pk of aiida node.
+    """
+    filename = transfer_wavecar(pk = pk, remote_computer = remote_computer)
+    return WavefunData(filename)
 
 
 def transfer_vasp_files(

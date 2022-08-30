@@ -2,6 +2,7 @@
 Useful imports and functions to submit VASP singleshot workchains with aiida
 """
 
+from email.policy import default
 from aiida import load_profile
 from aiida.engine.processes.workchains.workchain import WorkChain
 load_profile('aiida-vasp')
@@ -16,10 +17,11 @@ from monty.serialization import dumpfn, loadfn
 
 # aiida
 import aiida
+from aiida.orm import load_node
 from aiida.orm.nodes.data.structure import StructureData
 from aiida.common.extendeddicts import AttributeDict
 from aiida.orm import Code, Dict, Bool, WorkChainNode
-from aiida.plugins import DataFactory, WorkflowFactory
+from aiida.plugins import DataFactory, WorkflowFactory, CalculationFactory
 from aiida.engine import run, submit
 from aiida_vasp.data.chargedensity import ChargedensityData
 from aiida_vasp.data.wavefun import WavefunData
@@ -37,6 +39,7 @@ from pymatgen.electronic_structure.core import Spin
 
 # in house vasp functions
 from vasp_toolkit.input import get_potcar_mapping, get_default_number_of_bands
+from aiida_toolkit import parsing
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 incar_settings_vasp_ncl = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_incar_vasp_ncl_singleshot.yaml"))
@@ -64,11 +67,12 @@ def submit_vasp_singleshot(
     clean_workdir: Optional[bool] = False,
     group_label: Optional[str] = None,
 ) -> WorkChain:
-    """_summary_
+    """
+    Submit VASP singleshot workchain with aiida.
 
     Args:
         structure (Structure):
-            _description_
+            Input structure as a pymatgen.core.structure.Structure object.
         code_string (str):
             _description_
         kmesh (tuple):
@@ -95,11 +99,11 @@ def submit_vasp_singleshot(
         default_incar_settings_copy,
     ) -> dict:
         """Check if bands have been doubled for spin orbit coupling"""
-        if default_incar_settings_copy.get("LSORBIT") == True:
-            if default_incar_settings_copy.get("NELECT"):
+        if default_incar_settings_copy.get("NELECT"):
                 nelect = default_incar_settings_copy.get("NELECT")
-            else:
-                nelect = None
+        else:
+            nelect = None
+        if default_incar_settings_copy.get("LSORBIT") == True:
             default_nbands = get_default_number_of_bands(
                 structure=structure,
                 number_of_electrons=nelect,
@@ -108,6 +112,14 @@ def submit_vasp_singleshot(
                 default_incar_settings_copy.update(
                     {"NBANDS": 2*default_nbands + 5}
                 )
+        else:
+            default_nbands = get_default_number_of_bands(
+                structure=structure,
+                number_of_electrons=nelect,
+            )
+            if default_incar_settings_copy.get("NBANDS") <= default_nbands:
+                default_incar_settings_copy["NBANDS"] = default_nbands + 5
+
         return default_incar_settings_copy
 
     def check_vdw_parameters(
@@ -141,10 +153,34 @@ def submit_vasp_singleshot(
         del incar_dict['@module']
         return incar_dict
 
+    def setup_incar(
+        use_default_incar_settings,
+        incar_settings
+    ) -> dict:
+        """Setup incar parameters"""
+        # Dictionary matching common functionals to their INCAR tags
+        functionals = {
+            'PBE':   {'LHFCALC': False, 'HFSCREEN': 0, 'AEXX': 0},
+            'HSE06': {'LHFCALC': True, 'HFSCREEN': 0.2, 'AEXX': 0.25},
+            'PBE0':  {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0.25},
+        }
+        if spin_orbit:
+            default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl)
+        else:
+            default_incar_settings_copy = deepcopy(incar_settings_vasp_std)
+        if functional:
+            default_incar_settings_copy.update(functionals[functional])
+        if use_default_incar_settings: # Update the default settings with the user-defined settings
+            default_incar_settings_copy.update(incar_settings)
+        else: # Use the user-defined settings
+            default_incar_settings_copy = deepcopy(incar_settings)
+        default_incar_settings_copy["LAECHG"] = True  # For Bader analysis
+        return default_incar_settings_copy
+
     # We set the workchain you would like to call
-    basevasp = WorkflowFactory('vasp.vasp')
+    workchain = WorkflowFactory('vasp.vasp')
     # Then, we set the workchain you would like to call
-    workchain = WorkflowFactory('vasp.verify')
+    # workchain = WorkflowFactory('vasp.verify')
 
     # And finally, we declare the options, settings and input containers
     settings = AttributeDict()
@@ -167,23 +203,10 @@ def submit_vasp_singleshot(
     inputs.kpoints = kpoints
 
     # Set INCAR parameters
-    # Dictionary matching common functionals to their INCAR tags
-    functionals = {
-        'PBE':   {'LHFCALC': False, 'HFSCREEN': 0, 'AEXX': 0},
-        'HSE06': {'LHFCALC': True, 'HFSCREEN': 0.2, 'AEXX': 0.25},
-        'PBE0':  {'LHFCALC': True, 'HFSCREEN': 0, 'AEXX': 0.25},
-        }
-    if spin_orbit:
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_ncl)
-    else:
-        default_incar_settings_copy = deepcopy(incar_settings_vasp_std)
-    if functional:
-        default_incar_settings_copy.update(functionals[functional])
-    if use_default_incar_settings: # Update the default settings with the user-defined settings
-        default_incar_settings_copy.update(incar_settings)
-    else: # Use the user-defined settings
-        default_incar_settings_copy = deepcopy(incar_settings)
-
+    default_incar_settings_copy = setup_incar(
+        use_default_incar_settings=use_default_incar_settings,
+        incar_settings=incar_settings,
+    )
     # Check IVDW parameters for HSE06
     default_incar_settings_copy = check_vdw_parameters(default_incar_settings_copy)
     # If LSORBIT, check if bands have been doubled:
@@ -191,10 +214,8 @@ def submit_vasp_singleshot(
         structure,
         default_incar_settings_copy
     )
-
     # Check no typos in keys
     incar_dict = check_typos(default_incar_settings_copy)
-
     # Check ICHARG tag
     check_icharg(incar_dict)
     inputs.parameters = DataFactory('dict')(dict={'incar': incar_dict})
@@ -225,9 +246,9 @@ def submit_vasp_singleshot(
             # 'add_forces' : True,
             'add_energies': True,
             # 'add_bands': True,
-            #'add_trajectory': True,
-            },
-            }
+            # 'add_trajectory': True,
+        },
+    }
     if settings:
         default_settings.update(settings)
     inputs.settings = DataFactory('dict')(dict = default_settings)
@@ -268,3 +289,88 @@ def submit_vasp_singleshot(
         print(f"Submitted singleshot workchain with pk: {workchain.pk}")
 
     return workchain
+
+
+def submit_elf(
+    pk: int,
+    potential_mapping: Optional[dict]=None,
+    remote_computer: Optional[str]=None,
+    options: Optional[dict]=None,
+):
+    node = load_node(pk)
+    label = node.label
+    remote_folder = node.outputs.remote_folder
+
+    incar_dict = dict(node.inputs.parameters)
+    incar_dict = {
+        key.upper(): value for key, value in incar_dict.items()
+    }
+    if not incar_dict.get("LWAVE") or not incar_dict.get("LCHARG"):
+        print(
+            "To parse the ELF, you need the converged wavefunction and charge density."
+        )
+        return
+    incar_dict.update(
+        {
+            "LELF": True,
+            "NPAR": 1, # NCORE parallelisation not possible with LELF processing
+            "KPAR": 1,
+            "ALGO": None, # Don't change orbitals, just use WAVECAR
+            "LWAVE": False,
+            "LCHARG": False,
+        }
+    )
+
+    # We set the workchain you would like to call
+    workchain = WorkflowFactory('vasp.vasp')
+    # Then, we set the workchain you would like to call
+    # workchain = WorkflowFactory('vasp.verify')
+    # workchain = CalculationFactory('vasp.vasp')
+
+    # And finally, we declare the options, settings and input containers
+    settings = AttributeDict()
+    inputs = AttributeDict()
+
+    # Organize settings
+    settings.parser_settings = {}
+
+    # Set inputs for the following WorkChain execution
+    # Set parameters
+    inputs.parameters = DataFactory('dict')(dict={'incar': incar_dict})
+    # Set code
+    inputs.code = node.inputs.code
+    # Set structure
+    inputs.structure = node.inputs.structure
+    # Set k-points grid density
+    inputs.kpoints = node.inputs.kpoints
+    # Set options
+    if not options:
+        inputs.options = DataFactory('dict')(dict=node.get_options())
+    else:
+        inputs.options = DataFactory('dict')(dict=options)
+    # Set potentials and their mapping. If user does not specify them, we use the VASP recommended ones
+    structure = node.inputs.structure.get_pymatgen()
+    inputs.potential_family = DataFactory('str')(potcar_family)
+    if potential_mapping:
+        inputs.potential_mapping = DataFactory('dict')(dict = potential_mapping)
+    else:
+        inputs.potential_mapping = DataFactory('dict')(dict = get_potcar_mapping(structure = structure))
+    # Set settings
+    inputs.settings = node.inputs.settings
+    # Metadata
+    inputs.metadata = {'label': f"{label}_ELF"}
+    # Set workchain related inputs, in this case, give more explicit output to report
+    inputs.verbose = DataFactory('bool')(True)
+
+    # Chgcar and wavecar
+    remote_computer = node.inputs.code.computer.label
+    if "gpu" in remote_computer:
+        remote_computer = remote_computer.split("_")[0]
+    inputs.chgcar = parsing.get_charge_density_data_from_pk(pk, remote_computer=remote_computer)
+    inputs.wavecar = parsing.get_wavefunction_data_from_pk(pk, remote_computer=remote_computer)
+    inputs.restart_folder = remote_folder
+
+    # Submit the requested workchain with the supplied inputs
+    workchain = submit(workchain, **inputs)
+    print(f"Submitted singleshot workchain with pk: {workchain.pk}")
+
