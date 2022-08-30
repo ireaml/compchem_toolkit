@@ -36,7 +36,7 @@ from pymatgen.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.electronic_structure.core import Spin
 
 # in house vasp functions
-from vasp_toolkit.input import get_potcar_mapping
+from vasp_toolkit.input import get_potcar_mapping, get_default_number_of_bands
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 incar_settings_vasp_ncl = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_incar_vasp_ncl_singleshot.yaml"))
@@ -93,18 +93,18 @@ def submit_vasp_singleshot(
     def check_number_of_bands(
         structure,
         default_incar_settings_copy,
-    ):
+    ) -> dict:
         """Check if bands have been doubled for spin orbit coupling"""
         if default_incar_settings_copy.get("LSORBIT") == True:
+            if default_incar_settings_copy.get("NELECT"):
+                nelect = default_incar_settings_copy.get("NELECT")
+            else:
+                nelect = None
+            default_nbands = get_default_number_of_bands(
+                structure=structure,
+                number_of_electrons=nelect,
+            )
             if default_incar_settings_copy.get("NBANDS") < 2*default_nbands:
-                if default_incar_settings_copy.get("NELECT"):
-                    nelect = default_incar_settings_copy.get("NELECT")
-                else:
-                    nelect = None
-                default_nbands = input.get_default_number_of_bands(
-                    structure=structure,
-                    number_of_electrons=nelect,
-                )
                 default_incar_settings_copy.update(
                     {"NBANDS": 2*default_nbands + 5}
                 )
@@ -112,7 +112,7 @@ def submit_vasp_singleshot(
 
     def check_vdw_parameters(
         default_incar_settings_copy,
-    ):
+    ) -> dict:
         """Check IVDW parameters for HSE06/PBE0"""
         if default_incar_settings_copy.get("LHFCALC") == True:
             if default_incar_settings_copy.get("AEXX") != 0.0:
@@ -124,13 +124,22 @@ def submit_vasp_singleshot(
                 )  # From https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/functional
         return default_incar_settings_copy
 
-    def check_icharg(incar_dict):
+    def check_icharg(incar_dict) -> None:
         """Check ICHARG tag"""
         if incar_dict.get('ICHARG') != 2:
             if incar_dict.get('ICHARG') in [1, 11]: # needs CHGCAR as input, so make sure we're giving it
                 assert chgcar is not None, "CHGCAR is required for ICHARG = 1 or 11"
             if incar_dict.get('ICHARG') == 0: # needs WAVECAR as input, so make sure we're giving it
                 assert wavecar is not None, "WAVECAR is required for ICHARG = 0"
+
+    def check_typos(default_incar_settings_copy) -> dict:
+        """Check typos in keys"""
+        incar = Incar(default_incar_settings_copy)
+        incar.check_params() # check keys
+        incar_dict = incar.as_dict()
+        del incar_dict['@class']
+        del incar_dict['@module']
+        return incar_dict
 
     # We set the workchain you would like to call
     basevasp = WorkflowFactory('vasp.vasp')
@@ -184,14 +193,11 @@ def submit_vasp_singleshot(
     )
 
     # Check no typos in keys
-    incar = Incar(default_incar_settings_copy)
-    incar.check_params() # check keys
-    incar_dict = incar.as_dict()
-    del incar_dict['@class'] ; del incar_dict['@module']
+    incar_dict = check_typos(default_incar_settings_copy)
 
     # Check ICHARG tag
     check_icharg(incar_dict)
-    inputs.parameters = DataFactory('dict')(dict= {'incar': incar_dict})
+    inputs.parameters = DataFactory('dict')(dict={'incar': incar_dict})
 
     # Set potentials and their mapping. If user does not specify them, we use the VASP recommended ones
     inputs.potential_family = DataFactory('str')(potcar_family)
@@ -206,7 +212,14 @@ def submit_vasp_singleshot(
     # Set settings
     default_settings = {
         'parser_settings': {
-            'misc': ['total_energies', 'maximum_force', 'maximum_stress', 'run_status', 'run_stats', 'notifications'],
+            'misc': [
+                'total_energies',
+                'maximum_force',
+                'maximum_stress',
+                'run_status',
+                'run_stats',
+                'notifications'
+            ],
             'add_structure': True, # retrieve structure
             # 'add_kpoints': True,
             # 'add_forces' : True,
