@@ -27,6 +27,6 @@ from  pymatgen.io.vasp.outputs import  Vasprun
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # Compchem toolkit stuff
+from aiida_toolkit import relax, singleshot, parsing, aiida_utils
+from vasp_toolkit import output, input, potcar
 from vasp_toolkit.input import get_default_number_of_bands, check_paralellization
-from aiida_toolkit import relax, singleshot, parsing
-from vasp_toolkit import output
