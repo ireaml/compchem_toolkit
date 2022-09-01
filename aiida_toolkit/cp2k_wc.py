@@ -12,13 +12,15 @@ from aiida.engine import submit
 from aiida.orm import RemoteData, StructureData, load_code, Dict, SinglefileData, WorkChainNode
 from aiida.plugins import DataFactory, WorkflowFactory
 from aiida.engine.processes.builder import ProcessBuilder
+from aiida.tools.groups import GroupPath
+path = GroupPath()
 
 # pymatgen
 import pymatgen
 from pymatgen.core.structure import Structure
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_kind_section = loadfn(os.path.join(MODULE_DIR, "yaml_files/cp2k/kind_pbe_file.yaml"))
+
 
 def generate_kind_section(
     structure: Structure,
@@ -31,6 +33,7 @@ def generate_kind_section(
     Returns:
         list with the kind section for every element present in the input structure
     """
+    default_kind_section = loadfn(os.path.join(MODULE_DIR, "yaml_files/cp2k/kind_pbe_file.yaml"))
     try:
         kind_section = [default_kind_section[str(element)] for element in structure.composition.elements]
     except KeyError:
@@ -48,6 +51,7 @@ def submit_cp2k_workchain(
     label: Optional[str]=None,
     remote_data: Optional[RemoteData]=None,
     submit_workchain: Optional[bool]=True,
+    group_label: Optional[str]=None,
 )-> WorkChainNode or ProcessBuilder:
     """
     Submit Cp2k BaseWorkChain.
@@ -117,7 +121,13 @@ def submit_cp2k_workchain(
     # Submit
     if submit_workchain:
         workchain = submit(builder)
-        print(f"Submitted relax workchain with pk: {workchain.pk} and label {label}")
+        if group_label:
+            group = path[group_label].get_or_create_group()
+            group = path[group_label].get_group()
+            group.add_nodes(workchain)
+            print(f"Submitted relax workchain with pk {workchain.pk}, label {label} and group {group_label}.")
+        else:
+            print(f"Submitted relax workchain with pk {workchain.pk}, label {label}.")
         return workchain
     else:
         return builder
