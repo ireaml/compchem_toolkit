@@ -24,6 +24,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="Path to WAVECAR file. Defaults to './WAVECAR'",
     type=click.Path(exists=True, file_okay=True, dir_okay=False),
     default="./WAVECAR",
+    show_default=True,
 )
 @click.option(
     "--contcar",
@@ -31,12 +32,14 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="Path to POSCAR/CONTCAR file. Defaults to './CONTCAR'",
     type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
     default="./CONTCAR",
+    show_default=True,
 )
 @click.option(
     "--band_index",
     "-b",
     help="Index of band to analyse.",
     type=int,
+    show_default=True,
 )
 @click.option(
     "--filename",
@@ -44,12 +47,14 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="Filename for the PARCHG file that will be generated."
     "Default to PARCHG_band_{band_index}",
     type=str,
+    show_default=True,
 )
 @click.option(
     "--kpoint",
     "-k",
     help="Index of the kpoint to generate the partial charge density for.",
     type=int,
+    show_default=True,
 )
 @click.option(
     "--spin",
@@ -57,6 +62,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="Spin up (0) or down (1).",
     type=int,
     default=0,
+    show_default=True,
 )
 @click.option(
     "--phase",
@@ -64,6 +70,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     help="Show phase changes in density, if present.",
     type=bool,
     default=False,
+    show_default=True,
 )
 @click.option(
     "--vasp_type",
@@ -72,6 +79,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     "Defaults to 'std'.",
     type=str,
     default="std",
+    show_default=True,
 )
 def make_parchg(
     wavecar: str,
