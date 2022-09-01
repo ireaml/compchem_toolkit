@@ -1,6 +1,4 @@
-"""
-Collection of useful functions to analyse vasp output
-"""
+"""Collection of useful functions to analyse vasp output."""
 
 # Imports
 from collections import defaultdict

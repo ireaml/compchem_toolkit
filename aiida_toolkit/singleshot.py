@@ -1,6 +1,4 @@
-"""
-Useful imports and functions to submit VASP singleshot workchains with aiida
-"""
+"""Useful imports and functions to submit VASP singleshot workchains with aiida."""
 
 from email.policy import default
 from aiida import load_profile

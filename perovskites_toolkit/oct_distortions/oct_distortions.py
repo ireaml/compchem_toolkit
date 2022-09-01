@@ -1,11 +1,11 @@
-# Useful functions to analyse Oh distortions in perovskites
+"""Useful functions to analyse Oh distortions in perovskites."""
 from typing import Optional
 from copy import deepcopy
 import numpy as np
 
 # Pymatgen stuff
 from pymatgen.core.structure import Structure
-from pymatgen.io.ase import AseAtomsAdaptor 
+from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.analysis.local_env import CrystalNN
 
 aaa = AseAtomsAdaptor()
@@ -15,13 +15,13 @@ def get_tilting_angles(
     b_cation: str = 'Pb',
     x_anion: str = 'I',
     distance_between_b_cations: float = 6.6,
-    distance_between_b_x: float = 3.8, 
+    distance_between_b_x: float = 3.8,
     algorithm: str='neighbors',
     verbose: bool = False,
 ):
     """
-    Calculates tilting angles (between B-X-B) for a given structure. 
-    It returns the average B-X-B angle (in degrees) and can print all calculated B-X-B angles 
+    Calculates tilting angles (between B-X-B) for a given structure.
+    It returns the average B-X-B angle (in degrees) and can print all calculated B-X-B angles
 
     Args:
         struct (Structure): pymatgen structure of your material.
@@ -54,16 +54,16 @@ def get_tilting_angles(
         # Get neighbouring B cation sites (distance between them < 6.4 A)
         for b_site_2 in b_sites_copy:
             distance = struct.get_distance(b_site_1, b_site_2)
-            if distance < distance_between_b_cations: 
+            if distance < distance_between_b_cations:
                 # Get the anions surrounding each B cation
                 if algorithm == 'neighbors':
                     # Initially, was using the get_neighbors method, but think CrystalNN is more reliable, yet slower.
                     x_neighbors_of_b_1 = [ site.index for site in struct.get_neighbors(struct[b_site_1], r = distance_between_b_x) if site.species_string == x_anion ]
                     x_neighbors_of_b_2 = [ site.index for site in struct.get_neighbors(struct[b_site_2], r = distance_between_b_x) if site.species_string == x_anion ]
                 elif algorithm == 'crystal_nn':
-                    x_neighbors_of_b_1 = [ site_info['site_index'] for site_info in cn.get_nn_data(struct, b_site_1).all_nninfo if site_info['site'].species_string == x_anion ] 
-                    x_neighbors_of_b_2 = [ site_info['site_index'] for site_info in cn.get_nn_data(struct, b_site_2).all_nninfo if site_info['site'].species_string == x_anion ] 
-    
+                    x_neighbors_of_b_1 = [ site_info['site_index'] for site_info in cn.get_nn_data(struct, b_site_1).all_nninfo if site_info['site'].species_string == x_anion ]
+                    x_neighbors_of_b_2 = [ site_info['site_index'] for site_info in cn.get_nn_data(struct, b_site_2).all_nninfo if site_info['site'].species_string == x_anion ]
+
                 # Make sure we find 6 X anions neighbouring the B cation
                 assert len(x_neighbors_of_b_1) == 6, f"I find {len(x_neighbors_of_b_1)} {x_anion} surrounding the {b_cation}. This number should be 6!"
                 assert len(x_neighbors_of_b_2) == 6, f"I find {len(x_neighbors_of_b_2)} {x_anion} surrounding the {b_cation}. This number should be 6!"

@@ -1,4 +1,5 @@
-"""Functions to parse the output of aiida calculations"""
+"""Functions to parse the output of aiida calculations."""
+
 import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt

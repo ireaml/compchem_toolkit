@@ -2,7 +2,6 @@
 
 from aiida import load_profile
 load_profile('aiida-vasp')
-# ! reentry scan
 
 # Imports
 import yaml

@@ -1,6 +1,4 @@
-"""
-Useful functions to submit CP2K workchains with aiida
-"""
+"""Useful functions to submit CP2K workchains with aiida."""
 
 import os
 from typing import Optional

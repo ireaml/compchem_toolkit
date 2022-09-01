@@ -1,6 +1,4 @@
-"""
-Collection of useful functions for lobster input and output
-"""
+"""Collection of useful functions for lobster input and output."""
 
 from typing import Optional
 import matplotlib.pyplot as plt
