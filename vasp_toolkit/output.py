@@ -5,6 +5,8 @@ Collection of useful functions to analyse vasp output
 # Imports
 from collections import defaultdict
 import os
+import shutil
+import warnings
 import numpy as np
 from copy import deepcopy
 from typing import Optional
@@ -29,15 +31,21 @@ from sumo.plotting.dos_plotter import SDOSPlotter
 
 # Matplotlib
 import matplotlib
+from matplotlib import font_manager
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 # In-house stuff
 from vasp_toolkit.potcar import get_potcar_from_structure, get_valence_orbitals_from_potcar
 
+
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 # Helper functions
 def _bold_print(string: str) -> None:
     """Prints the input string in bold."""
     print("\033[1m" + string + "\033[0m")
+
 
 def analyse_procar(
     bsvasprun: BSVasprun,
@@ -122,6 +130,9 @@ def plot_dos(
     Returns:
         matplotlib.axes.Axes
     """
+    # Install custom font
+    _install_custom_font()
+
     # If user didnt specify orbitals, use valence orbitals of POTCAR
     if not elements_orbitals:
         elements_orbitals = get_valence_orbitals_from_potcar(
@@ -141,7 +152,7 @@ def plot_dos(
     myplot = sdosplotter.get_plot(
         xmin= xmin,
         xmax= xmax,
-        fonts = ['Whitney Light', 'Whitney Book'],
+        fonts = ["Whitney", "Whitney Light", "Whitney Book"],
         **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
     )
     return myplot
@@ -172,3 +183,53 @@ def make_parchg(
         phase=phase # show phase changes in density if present
     )
     my_parchg.write_file(f"{parchg_filename}.vasp")
+
+
+def _install_custom_font():
+    """Check if SnB custom font has been installed, and install it otherwise."""
+    # Find where matplotlib stores its True Type fonts
+    mpl_data_dir = os.path.dirname(matplotlib.matplotlib_fname())
+    print(mpl_data_dir)
+    mpl_fonts_dir = os.path.join(mpl_data_dir, "fonts", "ttf")
+    custom_fonts = [
+        font
+        for font in font_manager.findSystemFonts(fontpaths=mpl_fonts_dir, fontext="ttf")
+        if "whitney-book-pro" in font.lower()
+    ]
+    if not custom_fonts:  # If custom hasn't been installed, install it
+        print("Trying to install ShakeNBreak custom font...")
+        try:
+            # Copy the font file to matplotlib's True Type font directory
+            fonts_dir = f"{MODULE_DIR}/../fonts/"
+            try:
+                for file_name in os.listdir(fonts_dir):
+                    if ".ttf" in file_name:  # must be in ttf format for matplotlib
+                        old_path = os.path.join(fonts_dir, file_name)
+                        new_path = os.path.join(mpl_fonts_dir, file_name)
+                        shutil.copyfile(old_path, new_path)
+                        print("Copying " + old_path + " -> " + new_path)
+                    else:
+                        print(f"No ttf fonts found in the {fonts_dir} directory.")
+            except Exception:
+                pass
+
+            # Try to delete matplotlib's fontList cache
+            mpl_cache_dir = matplotlib.get_cachedir()
+            mpl_cache_dir_ls = os.listdir(mpl_cache_dir)
+            if "fontList.cache" in mpl_cache_dir_ls:
+                fontList_path = os.path.join(mpl_cache_dir, "fontList.cache")
+                if fontList_path:
+                    os.remove(fontList_path)
+                    print("Deleted the matplotlib fontList.cache.")
+            else:
+                print("Couldn't find matplotlib cache, so will continue.")
+
+            # Add font to Matplotlib Fontmanager
+            for font in os.listdir(fonts_dir):
+                font_manager._load_fontmanager(try_read_cache=False)
+                font_manager.fontManager.addfont(f"{fonts_dir}/{font}")
+                print(f"Adding {font} font to matplotlib fonts.")
+        except Exception:
+            warning_msg = """WARNING: An issue occured while installing the custom font for ShakeNBreak.
+                The widely available Helvetica font will be used instead."""
+            warnings.warn(warning_msg)

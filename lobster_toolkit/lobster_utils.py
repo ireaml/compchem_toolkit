@@ -18,6 +18,7 @@ from pymatgen.electronic_structure.plotter import CohpPlotter
 from pymatgen.core.periodic_table import Element
 
 from vasp_toolkit.potcar import get_valence_orbitals_from_potcar, get_potcar_from_structure
+from vasp_toolkit.output import _install_custom_font
 
 # For plotting
 plt.style.use("/home/ireaml/Python_Modules/mpl_style/publication_style.mplstyle")
@@ -199,6 +200,10 @@ def plot_cohp_for_label_list(
     Returns:
         mpl.axes.Axes: matplotlib axes object
     """
+
+    # Install custom font
+    _install_custom_font()
+
     cp = CohpPlotter()
 
     # search for the number of the COHP you would like to plot in ICOHPLIST.lobster (the numbers in COHPCAR.lobster are different!)
