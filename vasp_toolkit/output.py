@@ -152,7 +152,7 @@ def plot_dos(
     myplot = sdosplotter.get_plot(
         xmin= xmin,
         xmax= xmax,
-        fonts = ["Whitney", "Whitney Light", "Whitney Book"],
+        fonts = ["Whitney Light", "Whitney", "Whitney Book"],
         **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
     )
     return myplot
@@ -226,9 +226,10 @@ def _install_custom_font():
 
             # Add font to Matplotlib Fontmanager
             for font in os.listdir(fonts_dir):
-                font_manager._load_fontmanager(try_read_cache=False)
-                font_manager.fontManager.addfont(f"{fonts_dir}/{font}")
-                print(f"Adding {font} font to matplotlib fonts.")
+                if "ttf" in font:
+                    font_manager._load_fontmanager(try_read_cache=False)
+                    font_manager.fontManager.addfont(f"{fonts_dir}/{font}")
+                    print(f"Adding {font} font to matplotlib fonts.")
         except Exception:
             warning_msg = """WARNING: An issue occured while installing the custom font for ShakeNBreak.
                 The widely available Helvetica font will be used instead."""
