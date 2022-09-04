@@ -99,12 +99,13 @@ def make_parchg(
         filename = f'./PARCHG_band_{band_index}'
     my_wavecar = Wavecar(filename=wavecar, vasp_type=vasp_type) # or std or gam
     my_poscar = Poscar(Structure.from_file(contcar))
+    print("Generating PARCHG. All indexing starts at 1 (VASP), so substract 1 to change to Pythonic indexing!")
     my_parchg = my_wavecar.get_parchg(
         my_poscar,
         kpoint=kpoint, # first kpoint (Gamma in this case)
         band=band_index-1, # convert from python to vasp indexing
         spin=spin, # 0 = up, 1 = down
-        phase=phase # show phase changes in density if present
+        phase=phase, # show phase changes in density if present
     )
     my_parchg.write_file(f"{filename}.vasp")
 
