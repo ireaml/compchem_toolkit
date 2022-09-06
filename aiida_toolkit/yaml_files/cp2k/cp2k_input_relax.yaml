@@ -1,0 +1,69 @@
+GLOBAL:
+    PROJECT: aiida
+    RUN_TYPE: GEOMETRY_OPTIMIZATION
+    PRINT_LEVEL: LOW
+    WALLTIME: 08:30:00
+    ELPA_KERNEL: AVX2_BLOCK2 # For daint-gpu
+FORCE_EVAL:
+    METHOD: QS
+    DFT:
+          BASIS_SET_FILE_NAME:  BASIS_MOLOPT
+          POTENTIAL_FILE_NAME:  GTH_POTENTIALS
+          QS:
+              EXTRAPOLATION: ASPC
+              EXTRAPOLATION_ORDER: 3
+              EPS_DEFAULT: 1.0E-12
+          MGRID:
+              NGRIDS: 4
+              CUTOFF: 370
+              REL_CUTOFF: 70
+          SCF:
+              MAX_SCF: 500
+              EPS_SCF: 5.0000000000000004E-06
+              CHOLESKY: INVERSE
+              SCF_GUESS: RESTART
+              OUTER_SCF:
+                  MAX_SCF: 3
+                  EPS_SCF: 5.0E-06
+              OT:
+                  _: T
+                  ALGORITHM: IRAC
+                  MINIMIZER: DIIS
+                  PRECONDITIONER: FULL_ALL
+                  ENERGY_GAP: 5.0029999999999998E-02
+              MIXING:
+                  METHOD: BROYDEN_MIXING
+                  NBROYDEN: 8
+          XC:
+              XC_FUNCTIONAL:
+                  _: PBE
+              VDW_POTENTIAL:
+                  POTENTIAL_TYPE: PAIR_POTENTIAL
+                  PAIR_POTENTIAL:
+                      TYPE: DFTD3
+                      CALCULATE_C9_TERM: .TRUE.
+                      REFERENCE_C9_TERM: .TRUE.
+                      LONG_RANGE_CORRECTION: .TRUE.
+                      PARAMETER_FILE_NAME:  dftd3.dat
+                      REFERENCE_FUNCTIONAL:  PBE
+                      R_CUTOFF: 10.0
+    # PRINT:
+    #     FORCES:
+    #         _: ON
+MOTION:
+  GEO_OPT:
+    TYPE: MINIMIZATION  # find local minima
+    # Conditions for reaching the optimised geometry. All must be satisfied
+    # Tolerance on the maximum and root mean squared of atomic displacements from the previous geom opt iteration (in Bohr)
+    MAX_DR:    1.0E-03
+    RMS_DR:    1.0E-03
+    # Tolerance on the maximum and root-mean-square of atomic forces
+    MAX_FORCE: 1.0E-03
+    RMS_FORCE: 1.0E-03
+    MAX_ITER: 500  # maximum number of geometry optimisation
+    OPTIMIZER: CG  # algorithm for finding the stationary points: Conjugate gradient
+    CG:
+      MAX_STEEP_STEPS:  0
+      RESTART_LIMIT: 9.0E-01
+    # PRINT:
+

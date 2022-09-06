@@ -86,7 +86,10 @@ def submit_cp2k_workchain(
     if isinstance(input_parameters, Dict):
         builder.cp2k.parameters = input_parameters
     else:
-        raise TypeError(f"Incorrect data type for `parameters`. You gave me a {type(input_parameters)} but I expect a `dict` or `Dict` objects.")
+        raise TypeError(
+            f"Incorrect data type for `input_parameters`. "
+            f"You gave me a {type(input_parameters)} but I expect a `dict` or `Dict` objects."
+        )
     if not "SUBSYS" in input_parameters["FORCE_EVAL"].keys() and kind_section:
         input_parameters["FORCE_EVAL"]["SUBSYS"] = {"KIND": kind_section}
     elif not "SUBSYS" in input_parameters["FORCE_EVAL"].keys() and not kind_section:
@@ -118,14 +121,15 @@ def submit_cp2k_workchain(
 
     # Submit
     if submit_workchain:
+        type = input_parameters["GLOBAL"]["RUN_TYPE"]
         workchain = submit(builder)
         if group_label:
             group = path[group_label].get_or_create_group()
             group = path[group_label].get_group()
             group.add_nodes(workchain)
-            print(f"Submitted relax workchain with pk {workchain.pk}, label {label} and group {group_label}.")
+            print(f"Submitted CP2K workchain of type {type} with pk {workchain.pk}, label {label} and group {group_label}.")
         else:
-            print(f"Submitted relax workchain with pk {workchain.pk}, label {label}.")
+            print(f"Submitted CP2K workchain of type {type} with pk {workchain.pk}, label {label}.")
         return workchain
     else:
         return builder
