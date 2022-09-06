@@ -40,7 +40,7 @@ from pymatgen.electronic_structure.core import Spin
 from vasp_toolkit.input import get_potcar_mapping
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_relax_incar.yaml"))
+default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/relax_incar.yaml"))
 default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_POTCARs.yaml"))
 
 # Potcar family

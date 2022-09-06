@@ -58,7 +58,8 @@ FORCE_EVAL:
             EPS_LOCALIZATION: 1.0E-8
             PRINT:
                 # Output the Wannier functions as cube-files
-                WANNIER_CUBES: None
+                WANNIER_CUBES:
+                    APPEND: False
                 # Output the centers of all Wannier functions as xyz-file
                 WANNIER_CENTERS:
                     IONS+CENTERS: .TRUE.

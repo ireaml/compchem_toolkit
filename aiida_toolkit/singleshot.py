@@ -40,8 +40,8 @@ from vasp_toolkit.input import get_potcar_mapping, get_default_number_of_bands
 from aiida_toolkit import parsing
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-incar_settings_vasp_ncl = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_incar_vasp_ncl_singleshot.yaml"))
-incar_settings_vasp_std = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_incar_vasp_std_singleshot.yaml"))
+incar_settings_vasp_ncl = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/incar_vasp_ncl_singleshot.yaml"))
+incar_settings_vasp_std = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/incar_vasp_std_singleshot.yaml"))
 default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_POTCARs.yaml"))
 
 # Potcar family
