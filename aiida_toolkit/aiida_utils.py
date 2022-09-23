@@ -4,31 +4,43 @@ Useful functions to work with aiida
 
 # Imports
 import os
-import numpy as np
-from monty.serialization import dumpfn, loadfn
 
 # aiida
 import aiida
+import numpy as np
 from aiida import load_profile
-load_profile('aiida-vasp')
-from aiida.orm.nodes.data.structure import StructureData
-from aiida.orm import load_node, load_code, load_group, Code, Dict, Bool, QueryBuilder, WorkChainNode
-from aiida.plugins import DataFactory
+from monty.serialization import dumpfn, loadfn
+
+load_profile("aiida-vasp")
 from aiida.engine import run, submit
+from aiida.orm import (
+    Bool,
+    Code,
+    Dict,
+    QueryBuilder,
+    WorkChainNode,
+    load_code,
+    load_group,
+    load_node,
+)
+from aiida.orm.nodes.data.remote.base import RemoteData
+from aiida.orm.nodes.data.structure import StructureData
+from aiida.plugins import DataFactory
 from aiida.tools import delete_nodes
 from aiida_vasp.data.chargedensity import ChargedensityData
 from aiida_vasp.data.wavefun import WavefunData
-from aiida.orm.nodes.data.remote.base import RemoteData
-FolderData = DataFactory('folder')
+
+FolderData = DataFactory("folder")
 
 # pymatgen
 from pymatgen.core.structure import Structure
-from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.io.vasp.inputs import VaspInput, Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.electronic_structure.core import Spin
+from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar, VaspInput
+from pymatgen.io.vasp.outputs import Outcar, Vasprun
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def get_options_dict(
     computer: str,
@@ -43,7 +55,7 @@ def get_options_dict(
 
 def get_struct(
     pk: int,
-    output: bool=True,
+    output: bool = True,
 ) -> Structure:
     """
     Get the output or input structure of a given node.

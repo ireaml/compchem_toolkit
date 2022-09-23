@@ -25,7 +25,7 @@ FORCE_EVAL:
               OUTER_SCF:
                   MAX_SCF: 3
                   EPS_SCF: 5.0E-06
-              OT:  
+              OT:
                   _: T
                   ALGORITHM: IRAC
                   MINIMIZER: DIIS
@@ -35,7 +35,7 @@ FORCE_EVAL:
                   METHOD: BROYDEN_MIXING
                   NBROYDEN: 8
           XC:
-              XC_FUNCTIONAL: 
+              XC_FUNCTIONAL:
                   _: PBE
               VDW_POTENTIAL:
                   POTENTIAL_TYPE: PAIR_POTENTIAL
@@ -48,7 +48,7 @@ FORCE_EVAL:
                       REFERENCE_FUNCTIONAL:  PBE
                       R_CUTOFF: 10.0
     # PRINT:
-    #     FORCES: 
+    #     FORCES:
     #         _: ON
 MOTION:
     MD:

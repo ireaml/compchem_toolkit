@@ -1,0 +1,28 @@
+IMAGES: 5
+SPRING: -5
+
+ISPIN: 2
+NCORE: 12
+
+ENCUT: 350  # pre-converge with lower value (350 eV) then increase to fully-converged value
+NKRED: 2  # pre-converge then comment out
+NSW: 200
+NELM: 35  # prevent making many unnecessary electronic steps in initial ionic steps
+EDIFF: 1e-06
+EDIFFG: -0.01
+ALGO: Normal
+HFSCREEN: 0.2
+IBRION: 1
+ICHARG: 1
+ISIF: 2
+ISYM: 0
+ISMEAR: 0
+LASPH: True
+# LHFCALC: True
+LORBIT: 11
+LREAL: Auto
+LWAVE: True
+NEDOS: 2000
+PREC: Accurate
+PRECFOCK: Fast
+SIGMA: 0.05

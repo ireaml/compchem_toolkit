@@ -3,6 +3,7 @@ import pymatgen
 from pymatgen.core.structure import Structure
 from pymatgen.core.surface import Slab
 
+
 def get_layer_sites(
     structure: Structure,
     epsilon: float,
@@ -23,10 +24,10 @@ def get_layer_sites(
     """
     max_z = max(site.coords[2] for site in structure)
     min_z = min(site.coords[2] for site in structure)
-    top_layer = [ site for site in structure if site.coords[2] >= max_z - epsilon]
-    bottom_layer = [ site for site in structure if site.coords[2] <= min_z + epsilon]
+    top_layer = [site for site in structure if site.coords[2] >= max_z - epsilon]
+    bottom_layer = [site for site in structure if site.coords[2] <= min_z + epsilon]
     # print(f"Number of sites in top layer: {len(top_layer)}")
-    return {'top_layer': top_layer, 'bottom_layer': bottom_layer}
+    return {"top_layer": top_layer, "bottom_layer": bottom_layer}
 
 
 def get_structure_from_slab(
@@ -43,9 +44,9 @@ def get_structure_from_slab(
         Structure: pymatgen.core.structures.Structure object
     """
     struct = Structure(
-        lattice = slab.lattice,
-        species = slab.species,
-        coords = [site.frac_coords for site in slab],
-        coords_are_cartesian = False,
+        lattice=slab.lattice,
+        species=slab.species,
+        coords=[site.frac_coords for site in slab],
+        coords_are_cartesian=False,
     )
     return struct

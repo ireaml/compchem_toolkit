@@ -1,9 +1,9 @@
 """Collection of functions to work with pymatgen Structure object"""
 
-import pymatgen
-from pymatgen.core.structure import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher
 import numpy as np
+import pymatgen
+from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core.structure import Structure
 
 
 def _calculate_atomic_disp(
@@ -65,24 +65,21 @@ def get_atomic_disp(
             struct2=struct2,
             stol=stol,
         )
-        disp =  (
-            np.sum(norm_dist[norm_dist > min_dist * normalization])
-            / normalization
+        disp = (
+            np.sum(norm_dist[norm_dist > min_dist * normalization]) / normalization
         )  # Only include displacements above min_dist threshold, and remove
         # normalization
     except TypeError:  # small tolerances - couldn't match lattices
         stol *= 2
-        print("Initial attempt could not match lattices. Trying with "
-              f"stol {stol}")
+        print("Initial attempt could not match lattices. Trying with " f"stol {stol}")
         try:
             norm_rms_disp, norm_dist = _calculate_atomic_disp(
                 struct1=ref_structure,
                 struct2=struct2,
                 stol=stol,
             )
-            disp =  (
-                np.sum(norm_dist[norm_dist > min_dist * normalization])
-                / normalization
+            disp = (
+                np.sum(norm_dist[norm_dist > min_dist * normalization]) / normalization
             )  # Only include displacements above min_dist threshold, and remove
             # normalization
         except TypeError:

@@ -64,4 +64,3 @@ FORCE_EVAL:
                 WANNIER_CENTERS:
                     IONS+CENTERS: .TRUE.
                     FORMAT: PDB
-

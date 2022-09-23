@@ -13,5 +13,5 @@ LWAVE: False
 NELM: 60 # max electronic steps
 NELMIN: 5
 NSW: 300
-PREC: Accurate 
+PREC: Accurate
 SIGMA: 0.1 # width of the smearing in eV

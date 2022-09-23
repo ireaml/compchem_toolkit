@@ -6,8 +6,9 @@ to avoid parsing the CHGCAR file.
 """
 
 from pymatgen.core.structure import Structure
-from pymatgen.io.vasp.outputs import Potcar
 from pymatgen.io.vasp.inputs import Poscar
+from pymatgen.io.vasp.outputs import Potcar
+
 
 class Bader:
     """
@@ -48,12 +49,13 @@ class Bader:
             "dim": dimension of the original charge density map
             }
     """
+
     def __init__(
         self,
-        output_path: str="./",
-        acf_filename: str="ACF.dat",
-        potcar_filename: str="POTCAR",
-        poscar_filename: str="POSCAR",
+        output_path: str = "./",
+        acf_filename: str = "ACF.dat",
+        potcar_filename: str = "POTCAR",
+        poscar_filename: str = "POSCAR",
     ):
         """
         Initializes the Bader caller.
@@ -68,8 +70,14 @@ class Bader:
         if not acf_filename:
             acf_filename = "ACF.dat"
 
-        self.potcar = Potcar.from_file(f"{output_path}/{potcar_filename}") if potcar_filename is not None else None
-        self.poscar = Poscar.from_file(f"{output_path}/{poscar_filename}", read_velocities=False)
+        self.potcar = (
+            Potcar.from_file(f"{output_path}/{potcar_filename}")
+            if potcar_filename is not None
+            else None
+        )
+        self.poscar = Poscar.from_file(
+            f"{output_path}/{poscar_filename}", read_velocities=False
+        )
         self.natoms = self.poscar.natoms
         self.structure = Structure.from_file(f"{output_path}/{poscar_filename}")
 
@@ -78,7 +86,12 @@ class Bader:
         for i, v in enumerate(self.natoms):
             potcar_indices += [i] * v
         self.nelects = (
-            [self.potcar[potcar_indices[i]].nelectrons for i in range(len(self.structure))] if self.potcar else []
+            [
+                self.potcar[potcar_indices[i]].nelectrons
+                for i in range(len(self.structure))
+            ]
+            if self.potcar
+            else []
         )
 
         with open(f"{output_path}/{acf_filename}") as f:
@@ -135,8 +148,12 @@ class Bader:
             Given by bader charge on atom - nelect for associated atom.
         """
         if not self.nelects and nelect is None:
-            raise ValueError("No NELECT info! Need POTCAR for VASP or nelect argument for cube file")
-        return self.data[atom_index]["charge"] - (nelect if nelect is not None else self.nelects[atom_index])
+            raise ValueError(
+                "No NELECT info! Need POTCAR for VASP or nelect argument for cube file"
+            )
+        return self.data[atom_index]["charge"] - (
+            nelect if nelect is not None else self.nelects[atom_index]
+        )
 
     def get_partial_charge(self, atom_index, nelect=None):
         """

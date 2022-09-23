@@ -2,14 +2,13 @@
 
 import pymatgen
 
-def parse_molecule_from_sdf(
-    path: str
-) -> pymatgen.core.structure.Molecule:
+
+def parse_molecule_from_sdf(path: str) -> pymatgen.core.structure.Molecule:
     """
     Parse a sdf file into a pymatgen Molecule object.
 
     Args:
-        path (str): 
+        path (str):
             path to the `sdf` file containing your molecule.
             The file should only contain the lines with the atom coordinates and element symbol
 
@@ -18,15 +17,16 @@ def parse_molecule_from_sdf(
     """
     with open(path) as ff:
         file = ff.read()
-    atoms = file.splitlines()[0:] # read all lines
-    species = [] ; coords = []
+    atoms = file.splitlines()[0:]  # read all lines
+    species = []
+    coords = []
     for line in atoms:
         splitted = line.split()[0:4]
         coords.append([float(i) for i in splitted[0:3]])
         species.append(splitted[3])
 
     molecule = pymatgen.core.structure.Molecule(
-        species = species,
-        coords = coords,
+        species=species,
+        coords=coords,
     )
     return molecule

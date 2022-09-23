@@ -1,40 +1,49 @@
 """Collection of useful functions to analyse vasp output."""
 
 # Imports
-from collections import defaultdict
 import os
 import shutil
 import warnings
-import numpy as np
+from collections import defaultdict
 from copy import deepcopy
 from typing import Optional
-from monty.io import zopen
-from monty.serialization import dumpfn, loadfn
-import pandas as pd
-from pandas.core.frame import DataFrame
-
-# pymatgen
-import pymatgen
-from pymatgen.core.structure import Structure
-from pymatgen.io.vasp.outputs import Wavecar, Poscar, Structure
-# from pymatgen.io.ase import AseAtomsAdaptor
-# from pymatgen.io.vasp.inputs import VaspInput, Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.outputs import Outcar, Vasprun
-from pymatgen.electronic_structure.core import Spin
-from pymatgen.io.vasp.outputs import BSVasprun
-
-# SUMO
-from sumo.electronic_structure.dos import load_dos, get_pdos
-from sumo.plotting.dos_plotter import SDOSPlotter
 
 # Matplotlib
 import matplotlib
+import numpy as np
+import pandas as pd
+
+# pymatgen
+import pymatgen
 from matplotlib import font_manager
-matplotlib.rcParams['axes.unicode_minus'] = False
+from monty.io import zopen
+from monty.serialization import dumpfn, loadfn
+from pandas.core.frame import DataFrame
+from pymatgen.core.structure import Structure
+from pymatgen.electronic_structure.core import Spin
+
+# from pymatgen.io.ase import AseAtomsAdaptor
+# from pymatgen.io.vasp.inputs import VaspInput, Incar, Poscar, Potcar, Kpoints
+from pymatgen.io.vasp.outputs import (
+    BSVasprun,
+    Outcar,
+    Poscar,
+    Structure,
+    Vasprun,
+    Wavecar,
+)
+
+# SUMO
+from sumo.electronic_structure.dos import get_pdos, load_dos
+from sumo.plotting.dos_plotter import SDOSPlotter
+
+matplotlib.rcParams["axes.unicode_minus"] = False
 
 # In-house stuff
-from vasp_toolkit.potcar import get_potcar_from_structure, get_valence_orbitals_from_potcar
-
+from vasp_toolkit.potcar import (
+    get_potcar_from_structure,
+    get_valence_orbitals_from_potcar,
+)
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -49,7 +58,7 @@ def analyse_procar(
     bsvasprun: BSVasprun,
     list_of_atom_indexes: list,
     threshold: float = 0.06,
-    verbose: bool= True,
+    verbose: bool = True,
 ) -> DataFrame:
     """
     Determines the energy states localized in the atoms speficied in list_of_atom_indexes.
@@ -74,28 +83,41 @@ def analyse_procar(
     number_of_kpoints = len(bsvasprun.projected_eigenvalues[Spin(1)])
     projections = {}
     selected_bands = {}
-    print("Analysing PROCAR. All indexing starts at 0 (pythonic), so add 1 to change to VASP indexing!")
+    print(
+        "Analysing PROCAR. All indexing starts at 0 (pythonic), so add 1 to change to VASP indexing!"
+    )
     for band in range(0, number_of_bands):
-        projections[band] = {} # store projections on selected sites
-        selected_bands[band] = {} # bands with significant projection on sites, for output
+        projections[band] = {}  # store projections on selected sites
+        selected_bands[
+            band
+        ] = {}  # bands with significant projection on sites, for output
         for kpoint in range(0, number_of_kpoints):
             projections[band][kpoint] = {}
             atom_projections = {}
-            for atom_index in list_of_atom_indexes: # Filter projections of selected sites
+            for (
+                atom_index
+            ) in list_of_atom_indexes:  # Filter projections of selected sites
                 atom_projections[atom_index] = round(
-                    sum(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band][atom_index]),
+                    sum(
+                        bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band][
+                            atom_index
+                        ]
+                    ),
                     3,
                 )
 
             if all(
-                atom_projection > threshold # projection higher than threshold for all sites
+                atom_projection
+                > threshold  # projection higher than threshold for all sites
                 for atom_projection in atom_projections.values()
             ):
                 selected_bands[band][kpoint] = {
                     index: round(sum(value), 3)
-                    for index, value in enumerate(bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band])
+                    for index, value in enumerate(
+                        bsvasprun.projected_eigenvalues[Spin(1)][kpoint][band]
+                    )
                     if sum(value) > threshold
-                } # add sites with significant contributions
+                }  # add sites with significant contributions
                 if verbose:
                     _bold_print(f"Band: {band}. Kpoint: {kpoint}")
                     print(selected_bands[band][kpoint])
@@ -111,7 +133,7 @@ def plot_dos(
     gaussian: Optional[float] = 0.06,
     xmin: Optional[float] = -3.0,
     xmax: Optional[float] = 3.0,
-    **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
+    **kwargs,  # Other keyword arguments accepted by SDOSPlotter.get_plot()
 ) -> matplotlib.axes.Axes:
     """
     Quickly plot orbital projected DOS using SUMO.
@@ -134,24 +156,24 @@ def plot_dos(
     # If user didnt specify orbitals, use valence orbitals of POTCAR
     if not elements_orbitals:
         elements_orbitals = get_valence_orbitals_from_potcar(
-            potcar = get_potcar_from_structure(structure = structure)
+            potcar=get_potcar_from_structure(structure=structure)
         )
     # Load DOS and plot
     dos, pdos = load_dos(
-        vasprun = vasprun_path,
-        elements = elements_orbitals,
-        gaussian = gaussian,
-     )
+        vasprun=vasprun_path,
+        elements=elements_orbitals,
+        gaussian=gaussian,
+    )
 
     sdosplotter = SDOSPlotter(
-        dos = dos,
-        pdos = pdos,
+        dos=dos,
+        pdos=pdos,
     )
     myplot = sdosplotter.get_plot(
-        xmin= xmin,
-        xmax= xmax,
-        fonts = ["Whitney Light", "Whitney", "Whitney Book"],
-        **kwargs, # Other keyword arguments accepted by SDOSPlotter.get_plot()
+        xmin=xmin,
+        xmax=xmax,
+        fonts=["Whitney Light", "Whitney", "Whitney Book"],
+        **kwargs,  # Other keyword arguments accepted by SDOSPlotter.get_plot()
     )
     return myplot
 
@@ -162,23 +184,23 @@ def make_parchg(
     vasp_band_index: int,
     parchg_filename: Optional[str] = None,
     spin: int = 0,
-    kpoint: int=0,
-    phase: bool=False,
-    vasp_type: str='std', # or ncl or gam
+    kpoint: int = 0,
+    phase: bool = False,
+    vasp_type: str = "std",  # or ncl or gam
 ) -> None:
     """Generate partial charge density file of a given band and
     kpoint from VASP WAVECAR file.
     """
     if not parchg_filename:
-        parchg_filename = f'./PARCHG_band_{vasp_band_index}'
-    my_wavecar = Wavecar(filename=wavecar, vasp_type=vasp_type) # or std or gam
+        parchg_filename = f"./PARCHG_band_{vasp_band_index}"
+    my_wavecar = Wavecar(filename=wavecar, vasp_type=vasp_type)  # or std or gam
     my_poscar = Poscar(Structure.from_file(contcar))
     my_parchg = my_wavecar.get_parchg(
         my_poscar,
-        kpoint=kpoint, # first kpoint (Gamma in this case)
-        band=vasp_band_index-1, # convert from python to vasp indexing
-        spin=spin, # 0 = up, 1 = down
-        phase=phase # show phase changes in density if present
+        kpoint=kpoint,  # first kpoint (Gamma in this case)
+        band=vasp_band_index - 1,  # convert from python to vasp indexing
+        spin=spin,  # 0 = up, 1 = down
+        phase=phase,  # show phase changes in density if present
     )
     my_parchg.write_file(f"{parchg_filename}.vasp")
 
@@ -191,7 +213,9 @@ def _install_custom_font():
         mpl_fonts_dir = os.path.join(mpl_data_dir, "fonts", "ttf")
         custom_fonts = [
             font
-            for font in font_manager.findSystemFonts(fontpaths=mpl_fonts_dir, fontext="ttf")
+            for font in font_manager.findSystemFonts(
+                fontpaths=mpl_fonts_dir, fontext="ttf"
+            )
             if "whitney-book-pro" in font.lower()
         ]
         if not custom_fonts:  # If custom hasn't been installed, install it

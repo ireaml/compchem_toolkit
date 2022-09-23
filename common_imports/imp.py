@@ -1,31 +1,51 @@
 """Common imports."""
 
 from aiida import load_profile
-load_profile('aiida-vasp')
+
+load_profile("aiida-vasp")
+
+import os
+import sys
+from copy import deepcopy
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Imports
 import yaml
-from copy import deepcopy
-import os
-import sys
-import numpy as np
+from aiida.orm import (
+    Bool,
+    Code,
+    Dict,
+    Int,
+    QueryBuilder,
+    WorkChainNode,
+    load_code,
+    load_group,
+    load_node,
+)
 
 # aiida stuff
 from aiida.orm.nodes.data.structure import StructureData
-from aiida.orm import load_node, load_code, load_group, Code, Dict, Bool, QueryBuilder, WorkChainNode, Int
 from aiida.plugins import DataFactory
 from aiida.tools.groups import GroupPath
+
 path = GroupPath()
-FolderData = DataFactory('folder')
+FolderData = DataFactory("folder")
 
 # pymatgen
-from pymatgen.core.structure import Structure, Molecule
+from pymatgen.core.structure import Molecule, Structure
 from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.io.vasp.inputs import VaspInput, Incar, Poscar, Potcar, Kpoints
-from  pymatgen.io.vasp.outputs import  Vasprun
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar, VaspInput
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # Compchem toolkit stuff
-from aiida_toolkit import relax, singleshot, parsing, aiida_utils
-from vasp_toolkit import output, input, potcar
-from vasp_toolkit.input import get_default_number_of_bands, check_paralellization
+from aiida_toolkit import aiida_utils, parsing, relax, singleshot
+from vasp_toolkit import input, output, potcar
+from vasp_toolkit.input import check_paralellization, get_default_number_of_bands
+
+# Mpl style sheet
+file = "/home/ireaml/Python_Modules/mpl_style/publication_style.mplstyle"
+if os.path.exists(file):
+    plt.style.use(file)

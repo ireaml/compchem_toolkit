@@ -3,13 +3,14 @@ Find bands localised on particular atoms.
 Useful to generate charge density plots for particular bonds.
 """
 import os
-import click
 
-from pymatgen.io.vasp.outputs import BSVasprun
+import click
 from pymatgen.electronic_structure.core import Spin
+from pymatgen.io.vasp.outputs import BSVasprun
 
 ## CLI Commands:
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
 
 @click.command(
     name="analyse-procar",
@@ -56,7 +57,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     "--threshold",
     "-t",
     help="Threshold for the site projection of the orbital. Only orbitals with "
-         "higher projections on all sites in `atoms` will be returned.",
+    "higher projections on all sites in `atoms` will be returned.",
     type=float,
     default=0.06,
     show_default=True,
@@ -87,10 +88,11 @@ def analyse_procar(
     Returns:
         DataFrame
     """
+
     def get_atom_projs(bsvasprun, eigenval, band, kp, selected_bands):
         projections[band][kp] = {}
         atom_projections = {}
-        for atom_index in atoms: # Filter projections of selected sites
+        for atom_index in atoms:  # Filter projections of selected sites
             band_proj = bsvasprun.projected_eigenvalues[Spin(1)][kp][band]
             atom_projections[atom_index] = round(
                 sum(band_proj[int(atom_index)]),
@@ -98,7 +100,8 @@ def analyse_procar(
             )
 
         if all(
-            atom_projection > threshold  # projection higher than threshold for all sites
+            atom_projection
+            > threshold  # projection higher than threshold for all sites
             for atom_projection in atom_projections.values()
         ):
             selected_bands[band][kp] = {
@@ -106,7 +109,11 @@ def analyse_procar(
                 for index, value in enumerate(band_proj)
                 if sum(value) > threshold
             }  # add sites with significant contributions
-            click.secho(f"Band: {band}. Kpoint: {kp}. Energy: {str(eigenval[kp][band][0])}", fg='green', bold=True)
+            click.secho(
+                f"Band: {band}. Kpoint: {kp}. Energy: {str(eigenval[kp][band][0])}",
+                fg="green",
+                bold=True,
+            )
             if orbital_decomposed:
                 # Print orbital projections for selected atoms
                 print(
@@ -116,13 +123,17 @@ def analyse_procar(
                             f"Orb. index {ind}": round(val, 2)
                             for ind, val in enumerate(band_proj[int(atom_index)])
                             if val > 0.05
-                        } for atom_index in atoms
-                    }
+                        }
+                        for atom_index in atoms
+                    },
                 )
             click.echo("-------")
 
     if os.path.exists(vasprun):
-        bsvasprun = BSVasprun(vasprun, parse_projected_eigen=True,)
+        bsvasprun = BSVasprun(
+            vasprun,
+            parse_projected_eigen=True,
+        )
     else:
         raise FileNotFoundError
 
@@ -132,7 +143,9 @@ def analyse_procar(
     projections = {}
     selected_bands = {}
 
-    print("Analysing Vasprun. All indexing starts at 0 (pythonic), so add 1 to change to VASP indexing!")
+    print(
+        "Analysing Vasprun. All indexing starts at 0 (pythonic), so add 1 to change to VASP indexing!"
+    )
     print(
         f"VBM: {bsvasprun.eigenvalue_band_properties[2]}; "
         f"CBM: {bsvasprun.eigenvalue_band_properties[1]}; "
@@ -141,13 +154,16 @@ def analyse_procar(
     if kpoint != None:
         print(f"Will only consider kpoint {kpoint}.")
     for band in range(0, number_of_bands):
-        projections[band] = {} # store projections on selected sites
-        selected_bands[band] = {} # bands with significant projection on sites, for output
+        projections[band] = {}  # store projections on selected sites
+        selected_bands[
+            band
+        ] = {}  # bands with significant projection on sites, for output
         if not isinstance(kpoint, int):
             for kpoint in range(0, number_of_kpoints):
                 get_atom_projs(bsvasprun, eigenval, band, kpoint, selected_bands)
         else:  # Only focussing in the specified kpoint
             get_atom_projs(bsvasprun, eigenval, band, kpoint, selected_bands)
+
 
 if __name__ == "__main__":
     analyse_procar()

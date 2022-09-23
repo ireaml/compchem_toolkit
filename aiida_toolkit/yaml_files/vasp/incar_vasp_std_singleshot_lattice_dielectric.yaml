@@ -16,5 +16,5 @@ NEDOS: 2000
 NELM: 200 # max electronic steps
 NELMIN: 5
 NSW: 1
-PREC: Accurate 
+PREC: Accurate
 SIGMA: 0.1 # width of the smearing in eV

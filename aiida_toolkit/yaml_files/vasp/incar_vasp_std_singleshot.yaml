@@ -4,7 +4,7 @@ EDIFF: 1e-06 # global break condition for the electronic SC-loop
 EDIFFG: -0.01
 GGA: PE # PBE
 #HFSCREEN: 0.2 # HSE06
-IBRION: -1 
+IBRION: -1
 ISIF: 1 # Constant cell shape and volume
 ISYM: 0 # No Symmetry
 ISMEAR: -5 # Tetrahedron smearing
@@ -19,5 +19,5 @@ NEDOS: 2000
 NELM: 200 # max electronic steps
 NELMIN: 5
 NSW: 0
-PREC: Accurate 
+PREC: Accurate
 SIGMA: 0.1 # width of the smearing in eV

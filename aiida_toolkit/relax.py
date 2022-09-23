@@ -4,47 +4,54 @@ Useful imports and functions to submit VASP relaxation workchains with aiida
 
 from aiida import load_profile
 from aiida.engine.processes.workchains.workchain import WorkChain
-load_profile('aiida-vasp')
+
+load_profile("aiida-vasp")
 
 # Imports
 import os
-import numpy as np
 from copy import deepcopy
 from typing import Optional
-from monty.io import zopen
-from monty.serialization import dumpfn, loadfn
 
 # aiida
 import aiida
-from aiida.orm.nodes.data.structure import StructureData
+import numpy as np
 from aiida.common.extendeddicts import AttributeDict
-from aiida.orm import Code, Dict, Bool, WorkChainNode
-from aiida.plugins import DataFactory, WorkflowFactory
 from aiida.engine import run, submit
+from aiida.orm import Bool, Code, Dict, WorkChainNode
+from aiida.orm.nodes.data.remote.base import RemoteData
+from aiida.orm.nodes.data.structure import StructureData
+from aiida.plugins import DataFactory, WorkflowFactory
+from aiida.tools.groups import GroupPath
 from aiida_vasp.data.chargedensity import ChargedensityData
 from aiida_vasp.data.wavefun import WavefunData
-from aiida.orm.nodes.data.remote.base import RemoteData
-from aiida.tools.groups import GroupPath
+from monty.io import zopen
+from monty.serialization import dumpfn, loadfn
+
 path = GroupPath()
-FolderData = DataFactory('folder')
+FolderData = DataFactory("folder")
 
 # pymatgen
 import pymatgen
 from pymatgen.core.structure import Structure
-from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.io.vasp.inputs import VaspInput, Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.outputs import Outcar, Vasprun
 from pymatgen.electronic_structure.core import Spin
+from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar, VaspInput
+from pymatgen.io.vasp.outputs import Outcar, Vasprun
 
 # in house vasp functions
 from vasp_toolkit.input import get_potcar_mapping
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_incar_settings = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/relax_incar.yaml"))
-default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/vasp/default_POTCARs.yaml"))
+default_incar_settings = loadfn(
+    os.path.join(MODULE_DIR, "yaml_files/vasp/relax_incar.yaml")
+)
+default_potcar_dict = loadfn(
+    os.path.join(MODULE_DIR, "yaml_files/vasp/default_POTCARs.yaml")
+)
 
 # Potcar family
-potcar_family = 'PAW_PBE_54'
+potcar_family = "PAW_PBE_54"
+
 
 def submit_vasp_relax(
     structure: Structure,
@@ -53,7 +60,7 @@ def submit_vasp_relax(
     incar_settings: dict,
     label: str,
     options: dict,
-    algo: str = 'cg', # Optimization algorithm, default to conjugate gradient
+    algo: str = "cg",  # Optimization algorithm, default to conjugate gradient
     use_default_incar_settings: bool = False,
     positions: bool = True,
     shape: bool = False,
@@ -103,7 +110,7 @@ def submit_vasp_relax(
         WorkChain: aiida Workchain object
     """
     # We set the workchain you would like to call
-    workchain = WorkflowFactory('vasp.relax')
+    workchain = WorkflowFactory("vasp.relax")
 
     # And finally, we declare the options, settings and input containers
     settings = AttributeDict()
@@ -118,20 +125,24 @@ def submit_vasp_relax(
     inputs.code = Code.get_from_string(code_string)
 
     # Set structure
-    if not isinstance(structure, pymatgen.core.structure.Structure): # in case it's pmg interface or slab object
+    if not isinstance(
+        structure, pymatgen.core.structure.Structure
+    ):  # in case it's pmg interface or slab object
         structure = Structure(
-            species = structure.species,
-            lattice = structure.lattice,
-            coords= structure.frac_coords,
-            coords_are_cartesian= False,
+            species=structure.species,
+            lattice=structure.lattice,
+            coords=structure.frac_coords,
+            coords_are_cartesian=False,
         )
     sorted_structure = structure.get_sorted_structure()
     if sorted_structure != structure:
-        print("Structure is not sorted, sorting now. \n Quit if you had set MAGMOM's or selective dynamics for the unsorted structure!")
-    inputs.structure = StructureData(pymatgen =structure)
+        print(
+            "Structure is not sorted, sorting now. \n Quit if you had set MAGMOM's or selective dynamics for the unsorted structure!"
+        )
+    inputs.structure = StructureData(pymatgen=structure)
 
     # Set k-points grid density
-    kpoints = DataFactory('array.kpoints')()
+    kpoints = DataFactory("array.kpoints")()
     kpoints.set_kpoints_mesh(kmesh)
     inputs.kpoints = kpoints
 
@@ -143,41 +154,56 @@ def submit_vasp_relax(
         default_incar_settings_copy = deepcopy(incar_settings)
     # Check no typos in keys
     incar = Incar(default_incar_settings_copy)
-    incar.check_params() # check keys
-    incar_dict = incar.as_dict() ; del incar_dict['@class'] ; del incar_dict['@module']
+    incar.check_params()  # check keys
+    incar_dict = incar.as_dict()
+    del incar_dict["@class"]
+    del incar_dict["@module"]
     # Check ICHARG tag
-    if incar_dict.get('ICHARG') != 2:
-        if (incar_dict.get('ICHARG') in [1,11]) and (not remote_folder): # needs CHGCAR as input, so make sure we're giving it
+    if incar_dict.get("ICHARG") != 2:
+        if (incar_dict.get("ICHARG") in [1, 11]) and (
+            not remote_folder
+        ):  # needs CHGCAR as input, so make sure we're giving it
             assert chgcar is not None, "CHGCAR is required for ICHARG = 1 or 11"
-        if (incar_dict.get('ICHARG') == 0) and (not remote_folder): # needs WAVECAR as input, so make sure we're giving it
+        if (incar_dict.get("ICHARG") == 0) and (
+            not remote_folder
+        ):  # needs WAVECAR as input, so make sure we're giving it
             assert wavecar is not None, "WAVECAR is required for ICHARG = 0"
-    inputs.parameters = DataFactory('dict')(dict= {'incar': incar_dict})
+    inputs.parameters = DataFactory("dict")(dict={"incar": incar_dict})
 
     # Set potentials and their mapping
-    inputs.potential_family = DataFactory('str')(potcar_family)
+    inputs.potential_family = DataFactory("str")(potcar_family)
     if potential_mapping:
-        inputs.potential_mapping = DataFactory('dict')(dict=potential_mapping)
+        inputs.potential_mapping = DataFactory("dict")(dict=potential_mapping)
     else:
-        inputs.potential_mapping = DataFactory('dict')(dict= get_potcar_mapping(structure = structure))
+        inputs.potential_mapping = DataFactory("dict")(
+            dict=get_potcar_mapping(structure=structure)
+        )
 
     # Set options
-    inputs.options = DataFactory('dict')(dict=options)
+    inputs.options = DataFactory("dict")(dict=options)
 
     # Set settings
     default_settings = {
-        'parser_settings': {
-            'misc': ['total_energies', 'maximum_force', 'maximum_stress', 'run_status', 'run_stats', 'notifications'],
-            'add_structure': True, # retrieve structure and kpoints
+        "parser_settings": {
+            "misc": [
+                "total_energies",
+                "maximum_force",
+                "maximum_stress",
+                "run_status",
+                "run_stats",
+                "notifications",
+            ],
+            "add_structure": True,  # retrieve structure and kpoints
             # 'add_kpoints': True,
             # 'add_forces' : True,
-            'add_energies': True,
+            "add_energies": True,
             # 'add_bands': True,
             # 'add_trajectory': True,
-            },
-            }
+        },
+    }
     if settings:
         default_settings.update(settings)
-    inputs.settings = DataFactory('dict')(dict=default_settings)
+    inputs.settings = DataFactory("dict")(dict=default_settings)
 
     # Metadata
     if metadata:
@@ -185,41 +211,41 @@ def submit_vasp_relax(
     else:
         if not label:
             formula = structure.composition.to_pretty_string()
-            label = f'relax_{formula}'
-        inputs.metadata = {'label': label}
+            label = f"relax_{formula}"
+        inputs.metadata = {"label": label}
 
     # dynamics
     if dynamics:
         inputs.dynamics = dynamics
 
     # Set workchain related inputs, in this case, give more explicit output to report
-    inputs.verbose = DataFactory('bool')(True)
+    inputs.verbose = DataFactory("bool")(True)
 
     # Relaxation related parameters that is passed to the relax workchain
     relax = AttributeDict()
 
     # Turn on relaxation
-    relax.perform = DataFactory('bool')(True)
+    relax.perform = DataFactory("bool")(True)
 
     # Select relaxation algorithm
-    relax.algo = DataFactory('str')(algo)
+    relax.algo = DataFactory("str")(algo)
 
     # Set force cutoff limit (EDIFFG, but no sign needed)
     try:
-        force_cutoff = abs(default_incar_settings_copy['EDIFFG'])
-        relax.force_cutoff = DataFactory('float')(force_cutoff)
+        force_cutoff = abs(default_incar_settings_copy["EDIFFG"])
+        relax.force_cutoff = DataFactory("float")(force_cutoff)
     except KeyError:
-        relax.force_cutoff = DataFactory('float')(0.01)
+        relax.force_cutoff = DataFactory("float")(0.01)
 
     # Turn on relaxation of positions (strictly not needed as the default is on)
     # The three next parameters correspond to the well known ISIF=3 setting
-    relax.positions = DataFactory('bool')(positions)
+    relax.positions = DataFactory("bool")(positions)
     # Relaxation of the cell shape (defaults to False)
-    relax.shape = DataFactory('bool')(shape)
+    relax.shape = DataFactory("bool")(shape)
     # Relaxation of the volume (defaults to False)
-    relax.volume = DataFactory('bool')(volume)
+    relax.volume = DataFactory("bool")(volume)
     # Set maximum number of ionic steps
-    relax.steps = DataFactory('int')(ionic_steps)
+    relax.steps = DataFactory("int")(ionic_steps)
     # Set the relaxation parameters on the inputs
     inputs.relax = relax
 
@@ -247,6 +273,8 @@ def submit_vasp_relax(
             f"stored in group with label {group_label}"
         )
     else:
-        print(f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}")
+        print(
+            f"Submitted relax workchain with pk: {workchain.pk} and label {workchain.label}"
+        )
 
     return workchain

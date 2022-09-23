@@ -2,33 +2,39 @@
 Collection of useful functions for vasp input
 """
 
-import os
 import math
-from yaml import safe_load
-import yaml
+import os
+import warnings
+from typing import Optional
+
 import numpy as np
+import pymatgen.core.structure
+import yaml
 from monty.io import zopen
 from monty.serialization import dumpfn, loadfn
-from typing import Optional
-# Pymatgen stuff
-from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import Spin
-import pymatgen.core.structure
-import warnings
-warnings.filterwarnings('ignore') # ignore potcar warnings
+
+# Pymatgen stuff
+from pymatgen.io.vasp.inputs import Potcar
+from yaml import safe_load
+
+warnings.filterwarnings("ignore")  # ignore potcar warnings
 
 # In-house stuff
 from vasp_toolkit.potcar import *
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/default_POTCARs.yaml"))
+default_potcar_dict = loadfn(
+    os.path.join(MODULE_DIR, "yaml_files/default_POTCARs.yaml")
+)
+
 
 def get_default_number_of_bands(
     structure: pymatgen.core.structure.Structure,
     number_of_electrons: Optional[int] = None,
     potcar_mapping: Optional[dict] = None,
-    ) -> int:
+) -> int:
     """
     Returns the default number of bands that will be used by vasp, i.e. NELECT/2+NIONS/2 for non-spinpolarized \
         (without considering paralelization restrictions)
@@ -47,14 +53,13 @@ def get_default_number_of_bands(
         potcar_mapping = get_potcar_mapping(structure)
     if not number_of_electrons:
         number_of_electrons = get_number_of_electrons(
-            structure = structure,
-            potcar_mapping = potcar_mapping
-            )
+            structure=structure, potcar_mapping=potcar_mapping
+        )
     number_of_ions = len(structure)
     return max(
-        math.ceil(number_of_electrons / 2 + number_of_ions / 2), # number of bands
-        math.ceil(number_of_electrons * 0.6 )
-        )
+        math.ceil(number_of_electrons / 2 + number_of_ions / 2),  # number of bands
+        math.ceil(number_of_electrons * 0.6),
+    )
 
 
 def get_number_of_bands(
@@ -64,22 +69,27 @@ def get_number_of_bands(
     nodes: int = 6,
     cores_per_node: int = 28,
     verbose: bool = True,
-    ) -> int:
+) -> int:
     """
     Given the VASP parallelization settings (KPAR, NCORE), number of cores
     and minimum number of bands, it returns the rounded number of bands that will
     be used by VASP.
     """
     cores = nodes * cores_per_node
-    cores_per_kpoint = cores / kpar ; print("Cores per kpoint: ", cores_per_kpoint)
-    npar = cores_per_kpoint / ncore ; print("NPAR: ", npar)
+    cores_per_kpoint = cores / kpar
+    print("Cores per kpoint: ", cores_per_kpoint)
+    npar = cores_per_kpoint / ncore
+    print("NPAR: ", npar)
 
     # Now set NBANDS multiple of npar
     nbands_divided_by_npar = nbands_required / npar
     nbands_optimum = math.ceil(nbands_divided_by_npar) * npar
     if verbose:
         print(f"Minimum number of bands you require: {nbands_required}")
-        print("NBANDS used by VASP (applying parallelization requirements): ", nbands_optimum)
+        print(
+            "NBANDS used by VASP (applying parallelization requirements): ",
+            nbands_optimum,
+        )
     return nbands_optimum
 
 
@@ -110,23 +120,26 @@ def check_paralellization(
     """
     if not number_of_bands:
         number_of_bands = get_default_number_of_bands(
-            structure = structure,
-            potcar_mapping = potcar_mapping,
-            ) # Default number of bands that VASP would select for this structure & potcars
+            structure=structure,
+            potcar_mapping=potcar_mapping,
+        )  # Default number of bands that VASP would select for this structure & potcars
     number_of_bands_used = get_number_of_bands(
-        kpar = kpar,
-        nbands_required = number_of_bands,
-        ncore = ncore,
-        cores_per_node = cores_per_node,
-        nodes = nodes,
-        verbose = False,
+        kpar=kpar,
+        nbands_required=number_of_bands,
+        ncore=ncore,
+        cores_per_node=cores_per_node,
+        nodes=nodes,
+        verbose=False,
     )
     cores = nodes * cores_per_node
     print("Total number of cores: ", cores)
-    assert kpar <= nodes, 'KPAR should be smaller than the number of nodes'
-    assert cores % kpar == 0, 'Number of cores not divisible by KPAR!'
+    assert kpar <= nodes, "KPAR should be smaller than the number of nodes"
+    assert cores % kpar == 0, "Number of cores not divisible by KPAR!"
     print("Cores per kpoint:", cores / kpar)
     npar = cores / (kpar * ncore)
-    print("NPAR:",  npar)
-    print("Default number of bands that you/VASP would select for system:",  number_of_bands )
+    print("NPAR:", npar)
+    print(
+        "Default number of bands that you/VASP would select for system:",
+        number_of_bands,
+    )
     print("Rounded number of bands (multiple of NPAR): ", number_of_bands_used)

@@ -2,28 +2,31 @@
 Collection of useful functions to setup/manipulate VASP potcars
 """
 
-import os
 import math
-from yaml import safe_load
-import yaml
+import os
+import warnings
+from typing import Optional
+
 import numpy as np
+import pymatgen.core.structure
+import yaml
 from monty.io import zopen
 from monty.serialization import dumpfn, loadfn
-from typing import Optional
-# Pymatgen stuff
-from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import Spin
-import pymatgen.core.structure
-import warnings
-from pymatgen.io.vasp.inputs import UnknownPotcarWarning
+
+# Pymatgen stuff
+from pymatgen.io.vasp.inputs import Potcar, UnknownPotcarWarning
+from yaml import safe_load
 
 warnings.filterwarnings(
     "ignore", category=UnknownPotcarWarning
 )  # Ignore pymatgen POTCAR warnings
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-default_potcar_dict = loadfn(os.path.join(MODULE_DIR, "yaml_files/default_POTCARs.yaml"))
+default_potcar_dict = loadfn(
+    os.path.join(MODULE_DIR, "yaml_files/default_POTCARs.yaml")
+)
 
 
 def get_potcar_mapping(
@@ -41,7 +44,8 @@ def get_potcar_mapping(
         dict: element symbols matching the potcar symbols
     """
     potcar_mapping = {
-        str(element): default_potcar_dict['POTCAR'][str(element)] for element in structure.composition.elements
+        str(element): default_potcar_dict["POTCAR"][str(element)]
+        for element in structure.composition.elements
     }
     return potcar_mapping
 
@@ -59,19 +63,16 @@ def get_potcar_valence_electrons(
         corresponding pseudopotential
     """
     symbols = list(potcar_mapping.values())
-    potcar = Potcar(symbols = symbols )
+    potcar = Potcar(symbols=symbols)
     potcar_dict = dict(zip(potcar_mapping.keys(), potcar))
 
-    return {
-        key: potcarsingle.nelectrons
-        for key, potcarsingle in potcar_dict.items()
-    }
+    return {key: potcarsingle.nelectrons for key, potcarsingle in potcar_dict.items()}
 
 
 def get_potcar_from_structure(
     structure: pymatgen.core.structure.Structure,
     potcar_mapping: Optional[dict] = None,
-) -> Potcar :
+) -> Potcar:
     """
     Returns Potcar object for the elements present in your structure and
     the vasp potcars selected in the dictionary potcar_mapping.
@@ -91,21 +92,18 @@ def get_potcar_from_structure(
         assert set(structure.composition.elements) == {
             Element(element_string) for element_string in potcar_mapping
         }
-    else: # if not given, use default potcars
+    else:  # if not given, use default potcars
         potcar_mapping = get_potcar_mapping(structure)
 
     # Check the order of element symbols is the same in POTCAR and structure
     ordered_symbols = [
-        potcar_mapping[str(element)]
-        for element in structure.composition.elements
+        potcar_mapping[str(element)] for element in structure.composition.elements
     ]
 
-    return Potcar(symbols = ordered_symbols)
+    return Potcar(symbols=ordered_symbols)
 
 
-def get_potcars_from_mapping(
-    potcar_mapping : dict
-) -> Potcar:
+def get_potcars_from_mapping(potcar_mapping: dict) -> Potcar:
     """
     Returns POTCARS for the elements and POTCAR symbols given in potential mapping.
     Args:
@@ -113,7 +111,7 @@ def get_potcars_from_mapping(
             matches element symbol to VASP POTCAR name, i.e {'Pb': 'Pb_d', }
     """
     symbols = list(potcar_mapping.values())
-    potcars = Potcar( symbols = symbols)
+    potcars = Potcar(symbols=symbols)
     for potcar_single in potcars:
         print(potcar_single.element)
         print(potcar_single.electron_configuration)
@@ -140,20 +138,22 @@ def get_number_of_electrons(
     """
     if not potcar_mapping:
         potcar_mapping = get_potcar_mapping(structure)
-    potcar_valence_electrons = get_potcar_valence_electrons( potcar_mapping )
+    potcar_valence_electrons = get_potcar_valence_electrons(potcar_mapping)
     nelect = 0
     for element in structure.composition:
-        nelect += structure.composition[element] * potcar_valence_electrons[element.symbol]
+        nelect += (
+            structure.composition[element] * potcar_valence_electrons[element.symbol]
+        )
     return nelect
 
 
-def get_valence_orbitals_from_potcar(
-    potcar: Potcar
-) -> dict:
+def get_valence_orbitals_from_potcar(potcar: Potcar) -> dict:
     """Get valence orbitals (in the form of a dictionary mapping
     element to its valence orbitals) from pymatgen Potcar object.
     """
     orbitals = {}
     for potcarsingle in potcar:
-        orbitals[potcarsingle.element] = [ orbital[1] for orbital in potcarsingle.electron_configuration ]
+        orbitals[potcarsingle.element] = [
+            orbital[1] for orbital in potcarsingle.electron_configuration
+        ]
     return orbitals
