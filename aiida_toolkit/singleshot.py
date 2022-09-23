@@ -38,7 +38,6 @@ from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar, VaspInput
 from pymatgen.io.vasp.outputs import Outcar, Vasprun
 
 from aiida_toolkit import parsing
-
 # in house vasp functions
 from vasp_toolkit.input import get_default_number_of_bands, get_potcar_mapping
 
