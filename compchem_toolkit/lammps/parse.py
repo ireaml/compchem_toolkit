@@ -2,7 +2,7 @@ import subprocess
 import numpy as np
 import linecache
 
-def parse_log_file(
+def parse_log(
     string_fields: str="Step         PotEng",
     string_end_md_steps: str="Loop time of",
     log_file: str="log.lammps",
