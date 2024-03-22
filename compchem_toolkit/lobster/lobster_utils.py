@@ -15,8 +15,8 @@ from pymatgen.electronic_structure.core import Orbital, Spin
 from pymatgen.electronic_structure.plotter import CohpPlotter
 from scipy import interpolate
 
-from vasp_toolkit.output import _install_custom_font
-from vasp_toolkit.potcar import (
+from vasp.output import _install_custom_font
+from vasp.potcar import (
     get_potcar_from_structure,
     get_valence_orbitals_from_potcar,
 )

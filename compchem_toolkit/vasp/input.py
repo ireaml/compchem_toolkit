@@ -22,7 +22,7 @@ from yaml import safe_load
 warnings.filterwarnings("ignore")  # ignore potcar warnings
 
 # In-house stuff
-from vasp_toolkit.potcar import *
+from vasp.potcar import *
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 default_potcar_dict = loadfn(

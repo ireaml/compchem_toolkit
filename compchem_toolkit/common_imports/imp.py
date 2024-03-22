@@ -41,9 +41,9 @@ from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 # Compchem toolkit stuff
-from aiida_toolkit import aiida_utils, parsing, relax, singleshot
-from vasp_toolkit import input, output, potcar
-from vasp_toolkit.input import check_paralellization, get_default_number_of_bands
+from aiida_tools import aiida_utils, parsing, relax, singleshot
+from vasp import input, output, potcar
+from vasp.input import check_paralellization, get_default_number_of_bands
 
 # Mpl style sheet
 file = "/home/ireaml/Python_Modules/mpl_style/publication_style.mplstyle"

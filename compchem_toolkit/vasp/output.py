@@ -40,7 +40,7 @@ from sumo.plotting.dos_plotter import SDOSPlotter
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 # In-house stuff
-from vasp_toolkit.potcar import (
+from vasp.potcar import (
     get_potcar_from_structure,
     get_valence_orbitals_from_potcar,
 )
