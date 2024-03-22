@@ -1,9 +1,9 @@
 # `compchem_toolkit`
 Collection of `python` functions to work with `aiida`, `pymatgen`, `VASP` and `LOBSTER`.
 Designed to speed up input setup and output analysis.
-The functions are organized in different subpackages: `aiida_toolkit`, `pymatgen_toolkit`, `vasp_toolkit`, `lobster_toolkit` and `cli`.
+The functions are organized in different subpackages: `aiida_tools`, `pymatgen`, `vasp`, `lobster`, `lammps`, `ase`, `cp2k` and `cli`.
 
-1. `aiida_toolkit`
+1. `aiida_tools`
     * relax
       * submit_vasp_relax
     * singleshot
@@ -20,7 +20,7 @@ The functions are organized in different subpackages: `aiida_toolkit`, `pymatgen
     * aiida_utils
       * get_options_dict
       * get_struct
-2.  `vasp_toolkit`
+2.  `vasp`
     * input
       * get_number_of_bands
       * check_paralellization
@@ -42,7 +42,9 @@ The functions are organized in different subpackages: `aiida_toolkit`, `pymatgen
       * hole_finder
     * magnetisation
       * site_magnetizations
-3. `pymatgen_toolkit`
+3. `lammps`
+   * parse_log
+4. `pymatgen`
     * molecule
       * parse_molecule_from_sdf
     * slab
@@ -50,12 +52,12 @@ The functions are organized in different subpackages: `aiida_toolkit`, `pymatgen
       * get_structure_from_slab
     * structure
       * get_atomic_disp
-4. `lobster_toolkit`
+5. `lobster`
     * lobster_utils
       * get_labels_by_elements
       * calculate_mean_icohp
       * plot_cohp_for_label_list
-4. `cli`
+6. `cli`
     * make_parchg
     * procar
       * analyse_procar
