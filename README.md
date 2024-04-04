@@ -1,5 +1,5 @@
 # `compchem_toolkit`
-Collection of `python` functions to work with `aiida`, `pymatgen`, `VASP` and `LOBSTER`.
+Collection of `python` functions to work with `aiida`, `pymatgen`, `VASP`, `LAMMPS` and `LOBSTER`.
 Designed to speed up input setup and output analysis.
 The functions are organized in different subpackages: `aiida_tools`, `pymatgen`, `vasp`, `lobster`, `lammps`, `ase`, `cp2k` and `cli`.
 
