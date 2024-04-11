@@ -3,8 +3,6 @@
 import numpy as np
 import pymatgen
 from pymatgen.analysis.structure_matcher import StructureMatcher
-from pymatgen.core.structure import Structure
-
 
 def _calculate_atomic_disp(
     struct1: Structure,
