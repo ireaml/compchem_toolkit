@@ -1,6 +1,7 @@
 """Useful functions to analyse Oh distortions in perovskites."""
 from copy import deepcopy
 from typing import Optional
+import warnings
 
 import numpy as np
 from pymatgen.analysis.local_env import CrystalNN
@@ -20,6 +21,7 @@ def get_tilting_angles(
     distance_between_b_x: float = 3.8,
     algorithm: str = "neighbors",
     verbose: bool = False,
+    average: bool = True,
 ):
     """
     Calculates tilting angles (between B-X-B) for a given structure.
@@ -39,7 +41,7 @@ def get_tilting_angles(
             Defaults to False.
 
     Returns:
-       float: Average B-X-B angle.
+       float: Average B-X-B angle (in degrees) if average=True or list of all calculated B-X-B angles if average=False.
     """
     # Get ase atoms object
     atoms = aaa.get_atoms(struct)
@@ -89,12 +91,14 @@ def get_tilting_angles(
                     ]
 
                 # Make sure we find 6 X anions neighbouring the B cation
-                assert (
-                    len(x_neighbors_of_b_1) == 6
-                ), f"I find {len(x_neighbors_of_b_1)} {x_anion} surrounding the {b_cation}. This number should be 6!"
-                assert (
-                    len(x_neighbors_of_b_2) == 6
-                ), f"I find {len(x_neighbors_of_b_2)} {x_anion} surrounding the {b_cation}. This number should be 6!"
+                if not len(x_neighbors_of_b_1) == 6:
+                 warnings.warn(
+                     f"I find {len(x_neighbors_of_b_1)} {x_anion} surrounding the {b_cation}. This number should be 6!"
+                 )
+                if not len(x_neighbors_of_b_2) == 6:
+                    warnings.warn(
+                        f"I find {len(x_neighbors_of_b_2)} {x_anion} surrounding the {b_cation}. This number should be 6!"
+                        )
 
                 # Get the X anion connecting the two octahedra (the edge that the octahedra share)
                 common_x_anions = list(
@@ -111,4 +115,6 @@ def get_tilting_angles(
                     angles_b_x_b.append(round(ase_angle, 3))
     if verbose:
         print("Tilting angles: ", angles_b_x_b)  # in degrees
-    return round(np.mean(angles_b_x_b), 3)  # in degrees
+    if average:
+        return round(np.mean(angles_b_x_b), 3)  # in degrees
+    return angles_b_x_b

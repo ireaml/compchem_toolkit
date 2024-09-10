@@ -30,8 +30,9 @@ def parse_log(
     """
     out = subprocess.run(["grep", "-wn", string_fields, log_file], capture_output=True, text=True)
     first_line, fields = int(out.stdout.split()[0].split(":")[0]), out.stdout.split()[1:]
-    out = subprocess.run(["grep", "-wn", string_end_md_steps, log_file], capture_output=True, text=True)
-    last_line = int(out.stdout.split()[0].split(":")[0])
+    last_lines = [i for i in out.stdout.split() if "Loop" in i] # Can match more than one
+    # Select first one after first_line
+    last_line = [int(i.split(":")[0]) for i in last_lines if int(i.split(":")[0]) > first_line][0]
 
     x = np.linspace(first_line+1, last_line-1, num_steps, dtype=int)
     lines = []

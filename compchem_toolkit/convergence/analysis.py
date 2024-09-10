@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 def get_convergence_values(kpoints_file, threshold=0.001):
     with open(kpoints_file, "r") as f:
         kpoints = f.read()
-    # Get values from 3rd column into list
-    kpoints_energies_per_atom = [float(line.split()[2]) for line in kpoints.split("\n")[1:-1]]
+    # Get values from 3rd column into list (energies per atom)
+    kpoints_energies_per_atom = [
+        float(line.split()[2]) for line in kpoints.split("\n")[1:-1]
+    ]
     # Get encut values from 1st column into list
     data = [line.split() for line in kpoints.split("\n")[1:-1]]
     kpoints_values = [line[0].split("k")[1].split("_")[-1].split()[0] for line in data]
@@ -65,8 +67,10 @@ def parse_kpoints(kpoints_file, title=None):
     and plot them."""
     with open(kpoints_file, "r") as f:
         kpoints = f.read()
-    # Get values from 3rd column into list
-    kpoints_energies_per_atom = [float(line.split()[2]) for line in kpoints.split("\n")[1:-1]]
+    # Get values from 3rd column into list (energies per atom)
+    kpoints_energies_per_atom = [
+        float(line.split()[2]) for line in kpoints.split("\n")[1:-1]
+    ]
     # Get encut values from 1st column into list
     data = [line.split() for line in kpoints.split("\n")[1:-1]]
     kpoints_values = [line[0].split("k")[1].split("_")[-1].split()[0] for line in data]
