@@ -14,6 +14,7 @@ import matplotlib.ticker as mtick
 
 from pymlff.io import ml_ab_from_trajectory
 
+
 def get_structure_from_config(config: pymlff.core.Configuration):
     # Get list of species in configuration
     species = []
