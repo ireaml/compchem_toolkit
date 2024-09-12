@@ -12,7 +12,6 @@ def perform_direct_sampling(
         score=True
     ):
         def plot_PCAfeature_coverage(all_features, selected_indexes, jointplot=True):
-            fig, ax = plt.subplots(figsize=(5, 5))
             selected_features = all_features[selected_indexes]
             if jointplot:
                 # Use seaborn jointplot
@@ -43,9 +42,10 @@ def perform_direct_sampling(
                     marker="*", label=f"Sampled {len(selected_features):,}",
                     color="#D4447E", alpha=0.3,
                 )
-                # Plot the 550K
+                return g
 
             else:
+                fig, ax = plt.subplots(figsize=(5, 5))
                 plt.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
                 plt.plot(
                     selected_features[:, 0],
@@ -57,7 +57,7 @@ def perform_direct_sampling(
                 legend = plt.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
                 plt.ylabel("PC 2", size=20)
                 plt.xlabel("PC 1", size=20)
-            return fig, ax
+                return plt
 
         def calculate_all_FCS(all_features, selected_indexes, b_bins=100):
             def calculate_feature_coverage_score(all_features, selected_indexes, n_bins=100):
@@ -113,9 +113,9 @@ def perform_direct_sampling(
         all_features = DIRECT_selection["PCAfeatures"]
         selected_indexes = DIRECT_selection["selected_indexes"]
         if plot:
-            plot_PCAfeature_coverage(all_features, selected_indexes)
+            fig = plot_PCAfeature_coverage(all_features, selected_indexes)
         if score:
             n_pcas = all_features.shape[1]
             scores_DIRECT = calculate_all_FCS(all_features, selected_indexes, b_bins=n_pcas)
             ax = plot_scores(scores_DIRECT)
-        return DIRECT_selection
+        return DIRECT_selection, fig
