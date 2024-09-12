@@ -9,6 +9,22 @@ def perform_direct_sampling(
         plot=True,
         score=True
     ):
+        def plot_PCAfeature_coverage(all_features, selected_indexes):
+            fig, ax = plt.subplots(figsize=(5, 5))
+            selected_features = all_features[selected_indexes]
+            plt.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
+            plt.plot(
+                selected_features[:, 0],
+                selected_features[:, 1],
+                "*",
+                alpha=0.5,
+                label=f"Sampled {len(selected_features):,}",
+            )
+            legend = plt.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
+            plt.ylabel("PC 2", size=20)
+            plt.xlabel("PC 1", size=20)
+            return fig, ax
+
         def calculate_all_FCS(all_features, selected_indexes, b_bins=100):
             def calculate_feature_coverage_score(all_features, selected_indexes, n_bins=100):
                 selected_features = all_features[selected_indexes]
