@@ -16,7 +16,7 @@ def perform_direct_sampling(
             selected_features = all_features[selected_indexes]
             if jointplot:
                 # Use seaborn jointplot
-                df = pd.DataFrame(all_features, columns=["PC 1", "PC 2"])
+                df = pd.DataFrame(all_features[:, 0:2], columns=["PC 1", "PC 2"])
                 df["Type"] = ["All"] * len(all_features)
                 # Add selected features
                 df_selected = pd.DataFrame(selected_features, columns=["PC 1", "PC 2"])
