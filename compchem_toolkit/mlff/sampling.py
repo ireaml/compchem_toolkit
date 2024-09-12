@@ -19,7 +19,7 @@ def perform_direct_sampling(
                 df = pd.DataFrame(all_features[:, 0:2], columns=["PC 1", "PC 2"])
                 df["Type"] = ["All"] * len(all_features)
                 # Add selected features
-                df_selected = pd.DataFrame(selected_features, columns=["PC 1", "PC 2"])
+                df_selected = pd.DataFrame(selected_features[:, 0:2], columns=["PC 1", "PC 2"])
                 df_selected["Type"] = ["Selected"] * len(selected_features)
                 df = pd.concat([df, df_selected], axis=0)
                 g = sns.jointplot(
