@@ -9,20 +9,52 @@ def perform_direct_sampling(
         plot=True,
         score=True
     ):
-        def plot_PCAfeature_coverage(all_features, selected_indexes):
+        def plot_PCAfeature_coverage(all_features, selected_indexes, jointplot=True):
             fig, ax = plt.subplots(figsize=(5, 5))
             selected_features = all_features[selected_indexes]
-            plt.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
-            plt.plot(
-                selected_features[:, 0],
-                selected_features[:, 1],
-                "*",
-                alpha=0.5,
-                label=f"Sampled {len(selected_features):,}",
-            )
-            legend = plt.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
-            plt.ylabel("PC 2", size=20)
-            plt.xlabel("PC 1", size=20)
+            if jointplot:
+                # Use seaborn jointplot
+                df = pd.DataFrame(all_features, columns=["PC 1", "PC 2"])
+                df["Type"] = ["All"] * len(all_features)
+                # Add selected features
+                df_selected = pd.DataFrame(selected_features, columns=["PC 1", "PC 2"])
+                df_selected["Type"] = ["Selected"] * len(selected_features)
+                df = pd.concat([df, df_selected], axis=0)
+                g = sns.jointplot(
+                    data=df,
+                    x="PC 1",
+                    y="PC 2",
+                    hue="Type",
+                    kind="scatter",
+                    alpha=0.5,
+                    height=5,
+                    legend=True,
+                    edgecolor="none"
+                )
+                g.ax_joint.collections[0].set_visible(False)
+                g.ax_joint.scatter(
+                    df["PC 1"], df["PC 2"],
+                    marker="o", color="#5FABA2", alpha=0.3, label="All",
+                )
+                g.ax_joint.scatter(
+                    df_selected["PC 1"], df_selected["PC 2"],
+                    marker="*", label=f"Sampled {len(selected_features):,}",
+                    color="#D4447E", alpha=0.3,
+                )
+                # Plot the 550K
+
+            else:
+                plt.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
+                plt.plot(
+                    selected_features[:, 0],
+                    selected_features[:, 1],
+                    "*",
+                    alpha=0.5,
+                    label=f"Sampled {len(selected_features):,}",
+                )
+                legend = plt.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
+                plt.ylabel("PC 2", size=20)
+                plt.xlabel("PC 1", size=20)
             return fig, ax
 
         def calculate_all_FCS(all_features, selected_indexes, b_bins=100):
