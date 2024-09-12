@@ -52,7 +52,7 @@ def perform_direct_sampling(
             clustering=BirchClustering(n=n_clusters, threshold_init=threshold_init),
             select_k_from_clusters=SelectKFromClusters(k=1),
         )
-        print(f"Sampling {s}")
+        print(f"Sampling...")
         # Concatenate descriptors along 1st axis
         # descriptors = np.concatenate(descriptors, axis=0)
         DIRECT_selection = DIRECT_sampler.fit_transform(descriptors)
