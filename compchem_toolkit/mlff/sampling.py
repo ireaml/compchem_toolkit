@@ -1,8 +1,13 @@
+from maml.sampling.direct import DIRECTSampler, BirchClustering, SelectKFromClusters
+import numpy as np
+import matplotlib.pyplot as plt
+
 def perform_direct_sampling(
         descriptors,
         n_clusters,
         threshold_init=0.15,
-        plot=True, score=True
+        plot=True,
+        score=True
     ):
         def calculate_all_FCS(all_features, selected_indexes, b_bins=100):
             def calculate_feature_coverage_score(all_features, selected_indexes, n_bins=100):
