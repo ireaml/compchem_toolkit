@@ -42,22 +42,27 @@ def perform_direct_sampling(
                     marker="*", label=f"Sampled {len(selected_features):,}",
                     color="#D4447E", alpha=0.3,
                 )
+                # Remove ticks
+                g.ax_joint.set_xticks([])
+                g.ax_joint.set_yticks([])
+                g.ax_joint.set_xlim(min(df["PC 1"])-2, max(df["PC 1"])+2)
+                g.ax_joint.set_ylim(min(df["PC 2"])-2, max(df["PC 2"])+2)
                 return g
 
             else:
                 fig, ax = plt.subplots(figsize=(5, 5))
-                plt.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
-                plt.plot(
+                ax.plot(all_features[:, 0], all_features[:, 1], "*", alpha=0.5, label=f"All {len(all_features):,} envs")
+                ax.plot(
                     selected_features[:, 0],
                     selected_features[:, 1],
                     "*",
                     alpha=0.5,
                     label=f"Sampled {len(selected_features):,}",
                 )
-                legend = plt.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
-                plt.ylabel("PC 2", size=20)
-                plt.xlabel("PC 1", size=20)
-                return plt
+                ax.legend(frameon=False, fontsize=14, loc="upper left", bbox_to_anchor=(-0.02, 1.02), reverse=True)
+                ax.set_ylabel("PC 2", size=20)
+                ax.set_xlabel("PC 1", size=20)
+                return fig
 
         def calculate_all_FCS(all_features, selected_indexes, b_bins=100):
             def calculate_feature_coverage_score(all_features, selected_indexes, n_bins=100):
@@ -76,25 +81,23 @@ def perform_direct_sampling(
             return select_scores
 
         def plot_scores(scores_MPF_DIRECT):
-            # fig, ax = plt.subplots(figsize=(15, 4))
             x = np.arange(len(scores_MPF_DIRECT))
             x_ticks = [f"PC {n+1}" for n in range(len(x))]
-
-            plt.figure(figsize=(15, 4))
-            plt.bar(
+            fig, ax = plt.subplots(figsize=(15, 4))
+            ax.bar(
                 x + 0.6,
                 scores_MPF_DIRECT,
                 width=0.3,
                 label=f"Coverage score = {np.mean(scores_MPF_DIRECT):.3f}",
             )
             # plt.xticks(x + 0.45, x_ticks, size=16)
-            plt.yticks(np.linspace(0, 1.0, 6), size=16)
-            plt.ylabel("Coverage score", size=20)
-            plt.xlabel("Principal component", size=20)
+            ax.set_yticks(np.linspace(0, 1.0, 6), size=16)
+            ax.set_ylabel("Coverage score", size=20)
+            ax.set_xlabel("Principal component", size=20)
             # Remove xticks
-            plt.gca().xaxis.set_major_locator(plt.NullLocator())
-            plt.legend(shadow=True, loc="lower right", fontsize=16)
-            return plt
+            ax.set_xticks([])
+            ax.legend(shadow=True, loc="lower right", fontsize=16)
+            return fig
 
         # Get the symbols of the atoms in the structure
         DIRECT_sampler = DIRECTSampler(
@@ -116,6 +119,8 @@ def perform_direct_sampling(
             fig = plot_PCAfeature_coverage(all_features, selected_indexes)
         if score:
             n_pcas = all_features.shape[1]
-            scores_DIRECT = calculate_all_FCS(all_features, selected_indexes, b_bins=n_pcas)
+            scores_DIRECT = calculate_all_FCS(
+                all_features, selected_indexes, b_bins=n_pcas
+            )
             ax = plot_scores(scores_DIRECT)
         return DIRECT_selection, fig

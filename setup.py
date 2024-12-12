@@ -28,6 +28,7 @@ setup(
         "seaborn",
         "monty",
         "click",
+        "maml",
     ],
     entry_points={
         "console_scripts": [
