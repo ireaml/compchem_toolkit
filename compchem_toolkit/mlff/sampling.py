@@ -91,7 +91,7 @@ def perform_direct_sampling(
                 label=f"Coverage score = {np.mean(scores_MPF_DIRECT):.3f}",
             )
             # plt.xticks(x + 0.45, x_ticks, size=16)
-            ax.set_yticks(np.linspace(0, 1.0, 6), size=16)
+            ax.set_yticks(np.linspace(0, 1.0, 6))
             ax.set_ylabel("Coverage score", size=20)
             ax.set_xlabel("Principal component", size=20)
             # Remove xticks
