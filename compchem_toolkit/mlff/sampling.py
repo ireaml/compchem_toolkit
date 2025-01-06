@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from mace.calculators import MACECalculator
+from tqdm.notebook import tqdm
 
 def perform_direct_sampling(
         descriptors,
@@ -116,10 +118,41 @@ def perform_direct_sampling(
         selected_indexes = DIRECT_selection["selected_indexes"]
         if plot:
             fig = plot_PCAfeature_coverage(all_features, selected_indexes)
-        if score:
-            n_pcas = all_features.shape[1]
-            scores_DIRECT = calculate_all_FCS(
-                all_features, selected_indexes, b_bins=n_pcas
-            )
-            ax = plot_scores(scores_DIRECT)
-        return DIRECT_selection, fig
+            if score:
+                n_pcas = all_features.shape[1]
+                scores_DIRECT = calculate_all_FCS(
+                    all_features, selected_indexes, b_bins=n_pcas
+                )
+                ax = plot_scores(scores_DIRECT)
+            return DIRECT_selection, fig, ax
+        return DIRECT_selection, None
+
+
+
+def sample(
+    db,
+    path_MACE_model,
+    n_clusters,
+    device="cuda",
+    threshold_init=0.15,
+    plot=True,
+    score=True
+) -> list:
+
+    mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
+
+    mace_descriptors = []
+    for atoms in tqdm(db):
+        mace_descriptors.append(mace_calc.get_descriptors(atoms))
+    mace_descriptors_avg = np.mean(mace_descriptors, axis=1)
+
+    DIRECT_selection, fig = perform_direct_sampling(
+        mace_descriptors_avg,
+        n_clusters,
+        threshold_init=threshold_init,
+        plot=plot,
+        score=score
+    )
+    idx = DIRECT_selection['selected_indexes']
+    traj_selected = [db[i] for i in idx]
+    return traj_selected, fig
