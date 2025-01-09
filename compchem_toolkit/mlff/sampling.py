@@ -126,14 +126,14 @@ def perform_direct_sampling(
                 )
                 ax = plot_scores(scores_DIRECT)
             return DIRECT_selection, fig, ax
-        return DIRECT_selection, None
+        return DIRECT_selection, None, None
 
 
 
 def sample(
     db,
     n_clusters,
-    path_MACE_model: str=None,
+    path_MACE_model: str="",
     device="cuda",
     threshold_init=0.15,
     plot=True,
