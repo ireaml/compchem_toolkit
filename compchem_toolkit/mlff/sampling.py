@@ -152,12 +152,11 @@ def sample(
         species = list(set([atom.symbol for atoms in db for atom in atoms]))
         soap = SOAP(
             species=species,
-            rcut=5.0,
-            nmax=8,
-            lmax=6,
+            r_cut=5.0,
+            n_max=8,
+            l_max=6,
             sigma=0.5,
             periodic=True,
-            sparse=False,
             average="inner",
         )
         mace_descriptors_avg = []
