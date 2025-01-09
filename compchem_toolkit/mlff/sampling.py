@@ -5,6 +5,7 @@ import seaborn as sns
 import pandas as pd
 from mace.calculators import MACECalculator
 from tqdm.notebook import tqdm
+import os
 
 def perform_direct_sampling(
         descriptors,
