@@ -163,7 +163,7 @@ def sample(
         for atoms in tqdm(db):
             mace_descriptors_avg.append(soap.create(atoms))
 
-    DIRECT_selection, fig = perform_direct_sampling(
+    DIRECT_selection, fig, ax = perform_direct_sampling(
         mace_descriptors_avg,
         n_clusters,
         threshold_init=threshold_init,
