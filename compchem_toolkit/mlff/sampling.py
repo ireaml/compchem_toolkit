@@ -131,20 +131,37 @@ def perform_direct_sampling(
 
 def sample(
     db,
-    path_MACE_model,
     n_clusters,
+    path_MACE_model: str=None,
     device="cuda",
     threshold_init=0.15,
     plot=True,
     score=True
 ) -> list:
-
-    mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
-
-    mace_descriptors = []
-    for atoms in tqdm(db):
-        mace_descriptors.append(mace_calc.get_descriptors(atoms))
-    mace_descriptors_avg = np.mean(mace_descriptors, axis=1)
+    if os.path.exists(path_MACE_model):
+        mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
+        mace_descriptors = []
+        for atoms in tqdm(db):
+            mace_descriptors.append(mace_calc.get_descriptors(atoms))
+        mace_descriptors_avg = np.mean(mace_descriptors, axis=1)
+    else:
+        print(f"Path to MACE model {path_MACE_model} does not exist. Using SOAP descriptors.")
+        # Use dscribe SOAP descriptors
+        from dscribe.descriptors import SOAP
+        species = list(set([atom.symbol for atoms in db for atom in atoms]))
+        soap = SOAP(
+            species=species,
+            rcut=5.0,
+            nmax=8,
+            lmax=6,
+            sigma=0.5,
+            periodic=True,
+            sparse=False,
+            average="inner",
+        )
+        mace_descriptors_avg = []
+        for atoms in tqdm(db):
+            mace_descriptors_avg.append(soap.create(atoms))
 
     DIRECT_selection, fig = perform_direct_sampling(
         mace_descriptors_avg,
