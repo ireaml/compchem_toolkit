@@ -171,5 +171,5 @@ def sample(
         score=score
     )
     idx = DIRECT_selection['selected_indexes']
-    traj_selected = [db[i] for i in idx]
+    vac = [db[i] for i in idx]
     return traj_selected, fig

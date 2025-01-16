@@ -5,6 +5,7 @@ from mace.calculators import MACECalculator
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from ase.atoms import Atoms
 
 def mae(residuals):
     return np.mean(np.abs(residuals))
@@ -208,7 +209,10 @@ def plot_validation(
     plt.style.use(path_mpl_style)
 
     mace_calc = MACECalculator(model_paths=path_mace_model, device="cuda")
-    traj_val = read(path_trajectory, ":")
+    if isinstance(path_trajectory, str):
+        traj_val = read(path_trajectory, ":")
+    elif isinstance(path_trajectory, list) and isinstance(path_trajectory[0], Atoms):
+        traj_val = path_trajectory
 
     energies_dft, forces_dft, stresses_dft = [], [], []
     energies_mace, forces_mace, stresses_mace = [], [], []
