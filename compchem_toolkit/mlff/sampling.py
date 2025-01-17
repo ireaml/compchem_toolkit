@@ -6,6 +6,7 @@ import pandas as pd
 from mace.calculators import MACECalculator
 from tqdm.notebook import tqdm
 import os
+from dscribe.descriptors import SOAP
 
 def perform_direct_sampling(
         descriptors,
@@ -144,11 +145,12 @@ def sample(
         mace_descriptors = []
         for atoms in tqdm(db):
             mace_descriptors.append(mace_calc.get_descriptors(atoms))
+        # Save descriptors
+        np.save("mace_descriptors.npy", mace_descriptors)
         mace_descriptors_avg = np.mean(mace_descriptors, axis=1)
     else:
         print(f"Path to MACE model {path_MACE_model} does not exist. Using SOAP descriptors.")
         # Use dscribe SOAP descriptors
-        from dscribe.descriptors import SOAP
         species = list(set([atom.symbol for atoms in db for atom in atoms]))
         soap = SOAP(
             species=species,
