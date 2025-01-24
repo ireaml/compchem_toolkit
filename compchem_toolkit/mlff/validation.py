@@ -1,11 +1,12 @@
 from ase.io import read, write
+from ase.atoms import Atoms
 from tqdm.auto import tqdm
 import numpy as np
 from mace.calculators import MACECalculator
+import torch
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from ase.atoms import Atoms
 
 def mae(residuals):
     return np.mean(np.abs(residuals))
@@ -208,7 +209,12 @@ def plot_validation(
     """
     plt.style.use(path_mpl_style)
 
-    mace_calc = MACECalculator(model_paths=path_mace_model, device="cuda")
+    # Check if cuda is available
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    mace_calc = MACECalculator(model_paths=path_mace_model, device=device)
     if isinstance(path_trajectory, str):
         traj_val = read(path_trajectory, ":")
     elif isinstance(path_trajectory, list) and isinstance(path_trajectory[0], Atoms):
