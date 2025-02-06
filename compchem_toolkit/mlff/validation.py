@@ -7,6 +7,7 @@ import torch
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 def mae(residuals):
     return np.mean(np.abs(residuals))
@@ -207,7 +208,10 @@ def plot_validation(
     Returns:
         dict: Dictionary with the matplotlib figures for energy, forces and stresses.
     """
-    plt.style.use(path_mpl_style)
+    if os.path.exists(path_mpl_style):
+        plt.style.use(path_mpl_style)
+    else:
+        print(f"Could not find a style sheet with path {path_mpl_style}. Using default style.")
 
     # Check if cuda is available
     if torch.cuda.is_available():
