@@ -61,7 +61,20 @@ def parse_free_energy_from_outcar(path_to_outcar: str="OUTCAR"):
 
 
 def get_mlab_from_traj(traj, n_clusters, threshold_init=0.15, plot=True, index_from_1=True):
-    def get_soap_descriptors(traj, symbols_unique, r_cut = 6.0, n_max = 8, l_max = 6):
+    """Generate a MLAB object from an ase trajectory.
+
+    Args:
+        traj (_type_): _description_
+        n_clusters (_type_): _description_
+        threshold_init (float, optional): _description_. Defaults to 0.15.
+        plot (bool, optional): _description_. Defaults to True.
+        index_from_1 (bool, optional): _description_. Defaults to True.
+    """
+
+    def get_soap_descriptors(traj, symbols_unique, r_cut=6.0, n_max=8, l_max=6):
+        """
+        Generate SOAP descriptors for all atomic environments, separated by element.
+        """
         soap = SOAP(
             species=symbols_unique,
             periodic=True,
@@ -72,7 +85,7 @@ def get_mlab_from_traj(traj, n_clusters, threshold_init=0.15, plot=True, index_f
         soap_descriptors = []
         for a in traj:
             soap_descriptors.append(soap.create(a))
-        # Separate by element
+        # Separate SOAP environments by element
         descriptors_by_element = {s: [] for s in symbols_unique}
         for symbol, i in indices.items():
             descriptors_by_element[symbol] = [d[i[0]:i[1]] for d in soap_descriptors]
@@ -153,6 +166,7 @@ def get_mlab_from_traj(traj, n_clusters, threshold_init=0.15, plot=True, index_f
             select_k_from_clusters=SelectKFromClusters(k=1),
         )
         DIRECT_selection = {}
+        # Iterate over the elements
         for s, descriptors in descriptors_by_element.items():
             print(f"Sampling {s}")
             # Concatenate descriptors along 1st axis
