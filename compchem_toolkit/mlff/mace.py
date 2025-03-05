@@ -1,15 +1,64 @@
 import os
 from ase.io import read, write
+import matplotlib.pyplot as plt
 
-def parse_training_errors(filename):
+def parse_training_errors(filename, multihead=False):
     with open (filename, "r") as f:
         lines = f.readlines()
-    epoch_lines = [line for line in lines if "Epoch" in line][1:]
-    epoch_number = [int(line.split("Epoch ")[1].split(":")[0]) for line in epoch_lines]
-    rmse_E = [float(line.split("RMSE_E_per_atom=")[1].split("meV")[0]) for line in epoch_lines]
-    rmse_F = [float(line.split("RMSE_F=")[1].split("meV / A")[0]) for line in epoch_lines]
-    rmse_S = [float(line.split("RMSE_stress_per_atom=")[1].split("meV / A^3")[0]) for line in epoch_lines]
-    return epoch_number, rmse_E, rmse_F, rmse_S
+    if multihead:
+        epoch_lines = [line for line in lines if "Epoch" in line][1:]
+        # Split epoch_lines: odd numbers are 1st head, even numbers are 2nd head
+        epoch_lines_1 = epoch_lines[::2]
+        epoch_lines_2 = epoch_lines[1::2]
+        epoch_number = [int(line.split("Epoch ")[1].split(":")[0]) for line in epoch_lines_1]
+        rmse_E_1 = [float(line.split("RMSE_E_per_atom=")[1].split("meV")[0]) for line in epoch_lines_1]
+        rmse_F_1 = [float(line.split("RMSE_F=")[1].split("meV / A")[0]) for line in epoch_lines_1]
+        rmse_S_1 = [float(line.split("RMSE_stress_per_atom=")[1].split("meV / A^3")[0]) for line in epoch_lines_1]
+        rmse_E_2 = [float(line.split("RMSE_E_per_atom=")[1].split("meV")[0]) for line in epoch_lines_2]
+        rmse_F_2 = [float(line.split("RMSE_F=")[1].split("meV / A")[0]) for line in epoch_lines_2]
+        rmse_S_2 = [float(line.split("RMSE_stress_per_atom=")[1].split("meV / A^3")[0]) for line in epoch_lines_2]
+        return epoch_number, rmse_E_1, rmse_F_1, rmse_S_1, rmse_E_2, rmse_F_2, rmse_S_2
+    else:
+        epoch_lines = [line for line in lines if "Epoch" in line][1:]
+        epoch_number = [int(line.split("Epoch ")[1].split(":")[0]) for line in epoch_lines]
+        rmse_E = [float(line.split("RMSE_E_per_atom=")[1].split("meV")[0]) for line in epoch_lines]
+        rmse_F = [float(line.split("RMSE_F=")[1].split("meV / A")[0]) for line in epoch_lines]
+        rmse_S = [float(line.split("RMSE_stress_per_atom=")[1].split("meV / A^3")[0]) for line in epoch_lines]
+        return epoch_number, rmse_E, rmse_F, rmse_S
+
+
+def plot_training_curve(filename, multihead=False, path_mpl_style=""):
+    if os.path.exists(path_mpl_style):
+        plt.style.use(path_mpl_style)
+    else:
+        print(f"Could not find a style sheet with path {path_mpl_style}. Using default style.")
+    if multihead:
+        epoch_number, rmse_E_1, rmse_F_1, rmse_S_1, rmse_E_2, rmse_F_2, rmse_S_2 = parse_training_errors(
+            filename, multihead=multihead
+        )
+        fig, ax = plt.subplots(3, 1, figsize=(10, 15))
+        ax[0].plot(epoch_number, rmse_E_1, label="H1")
+        ax[0].plot(epoch_number, rmse_E_2, label="H2")
+        ax[0].set_ylabel("RMSE${_E} (meV)")
+        ax[0].legend()
+        ax[1].plot(epoch_number, rmse_F_1, label="H1")
+        ax[1].plot(epoch_number, rmse_F_2, label="H2")
+        ax[1].set_ylabel("RMSE${_F} (meV/A)")
+        ax[2].plot(epoch_number, rmse_S_1, label="H1")
+        ax[2].plot(epoch_number, rmse_S_2, label="H2")
+        ax[2].set_ylabel("RMSE${_S} (meV/A^3)")
+        ax[2].set_xlabel("Epoch")
+    else:
+        epoch_number, rmse_E, rmse_F, rmse_S = parse_training_errors(filename)
+        fig, ax = plt.subplots(3, 1, figsize=(10, 15))
+        ax[0].plot(epoch_number, rmse_E)
+        ax[0].set_ylabel("RMSE${_E} (meV)")
+        ax[1].plot(epoch_number, rmse_F)
+        ax[1].set_ylabel("RMSE${_F} (meV/A)")
+        ax[2].plot(epoch_number, rmse_S)
+        ax[2].set_ylabel("RMSE${_S} (meV/A^3)")
+        ax[2].set_xlabel("Epoch")
+    return fig, ax
 
 
 def get_mace_db_from_mlab(

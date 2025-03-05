@@ -118,3 +118,76 @@ def get_tilting_angles(
     if average:
         return round(np.mean(angles_b_x_b), 3)  # in degrees
     return angles_b_x_b
+
+
+def get_tilting_angles_xbx(
+    struct: Structure,
+    b_cation: str = "Pb",
+    x_anion: str = "I",
+    distance_between_b_cations: float = 6.6,
+    distance_between_b_x: float = 3.8,
+    algorithm: str = "neighbors",
+    verbose: bool = False,
+    average: bool = True,
+):
+    """
+    Calculates tilting angles (between X-B-X) for a given structure.
+    It returns the average X-B-X angle (in degrees) and can print all calculated X-B-X angles
+
+    Args:
+        struct (Structure): pymatgen structure of your material.
+        b_cation (str, optional): symbol of the B cation (in a perovskite with general formula ABX3). \
+            Defaults to 'Pb'.
+        x_anion (str, optional): symbol of the X anion in the perovskite. Defaults to 'I'.
+        distance_between_b_cations (float): distance between 2 neighbouring B cations (the centre of the octahedra), in A.
+        distance_between_b_x (float): distance between bonded B cation and X anion, in A.
+        algorithm (str, optional): Algorithm used to find the x anions bonded to the B cations. \
+            This can be 'crystal_nn' (more reliable but slower) or 'neighbors' (faster).
+            Defaults to 'neighbors'.
+        verbose (bool, optional): Print all calculated X-B-X angles. \
+            Defaults to False.
+
+    Returns:
+       float: Average X-B-X angle (in degrees) if average=True or list of all calculated X-B-X angles if average=False.
+    """
+    # Get ase atoms object
+    atoms = aaa.get_atoms(struct)
+    # Initialize CrystalNN
+    cn = CrystalNN(search_cutoff=distance_between_b_x)
+
+    # Get all X anion sites in structure
+    x_sites = [
+        index for index, site in enumerate(struct) if site.species_string == x_anion
+    ]
+    angles_x_b_x = []
+    # Loop for each X anion site
+    for x_site in x_sites:
+        # Get the neighboring B cations
+        if algorithm == "neighbors":
+            b_neighbors = [
+                site.index
+                for site in struct.get_neighbors(struct[x_site], r=distance_between_b_x)
+                if site.species_string == b_cation
+            ]
+        elif algorithm == "crystal_nn":
+            b_neighbors = [
+                site_info["site_index"]
+                for site_info in cn.get_nn_data(struct, x_site).all_nninfo
+                if site_info["site"].species_string == b_cation
+            ]
+
+        # Ensure we have exactly 2 B cations to form an X-B-X angle
+        if len(b_neighbors) != 2:
+            continue
+
+        b_site_1, b_site_2 = b_neighbors
+
+        # Compute X-B-X angle
+        ase_angle = atoms.get_angle(b_site_1, x_site, b_site_2, mic=True)
+        angles_x_b_x.append(round(ase_angle, 3))
+
+    if verbose:
+        print("Tilting angles: ", angles_x_b_x)  # in degrees
+    if average:
+        return round(np.mean(angles_x_b_x), 3)  # in degrees
+    return angles_x_b_x
