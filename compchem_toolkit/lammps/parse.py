@@ -29,10 +29,13 @@ def parse_log(
         dict: Dictionary with thermo fields as keys and lists of values as values.
     """
     out = subprocess.run(["grep", "-wn", string_fields, log_file], capture_output=True, text=True)
-    first_line, fields = int(out.stdout.split()[0].split(":")[0]), out.stdout.split()[1:]
-    last_lines = [i for i in out.stdout.split() if "Loop" in i] # Can match more than one
-    # Select first one after first_line
-    last_line = [int(i.split(":")[0]) for i in last_lines if int(i.split(":")[0]) > first_line][0]
+    # Check if several lines with ":"
+    lines_starting_md = [(index, i) for index, i in enumerate(out.stdout.split()) if ":" in i]
+    if len(lines_starting_md) > 1:
+        print("Several MD runs found in log file. Selecting last one.")
+    first_line, fields = int(lines_starting_md[1].split(":")[0]), out.stdout.split()[lines_starting_md[0]:]
+    out_last = subprocess.run(["grep", "-wn", string_end_md_steps, log_file], capture_output=True, text=True)
+    last_line = int(out_last.stdout.split()[-1].split(":")[0])
 
     x = np.linspace(first_line+1, last_line-1, num_steps, dtype=int)
     lines = []
