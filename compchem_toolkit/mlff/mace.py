@@ -48,6 +48,8 @@ def plot_training_curve(filename, multihead=False, path_mpl_style=""):
         ax[2].plot(epoch_number, rmse_S_2, label="H2")
         ax[2].set_ylabel("RMSE${_S} (meV/A^3)")
         ax[2].set_xlabel("Epoch")
+        # Save figure
+        fig.savefig(filename.replace(".txt", ".pdf"), bbox_inches="tight")
     else:
         epoch_number, rmse_E, rmse_F, rmse_S = parse_training_errors(filename)
         fig, ax = plt.subplots(3, 1, figsize=(10, 15))
