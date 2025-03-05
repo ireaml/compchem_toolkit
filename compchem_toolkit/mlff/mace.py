@@ -27,7 +27,7 @@ def parse_training_errors(filename, multihead=False):
         return epoch_number, rmse_E, rmse_F, rmse_S
 
 
-def plot_training_curve(filename, multihead=False, path_mpl_style=""):
+def plot_training_curve(filename, multihead=False, path_mpl_style="", start=0):
     if os.path.exists(path_mpl_style):
         plt.style.use(path_mpl_style)
     else:
@@ -36,16 +36,16 @@ def plot_training_curve(filename, multihead=False, path_mpl_style=""):
         epoch_number, rmse_E_1, rmse_F_1, rmse_S_1, rmse_E_2, rmse_F_2, rmse_S_2 = parse_training_errors(
             filename, multihead=multihead
         )
-        fig, ax = plt.subplots(3, 1, figsize=(6, 9))
-        ax[0].plot(epoch_number, rmse_E_1, "-o", label="H1")
-        ax[0].plot(epoch_number, rmse_E_2, "->", label="H2")
+        fig, ax = plt.subplots(3, 1, figsize=(6, 9), sharex=True)
+        ax[0].plot(epoch_number[start:], rmse_E_1[start:], "-o", label="H1")
+        ax[0].plot(epoch_number[start:], rmse_E_2[start:], "->", label="H2")
         ax[0].set_ylabel("RMSE${_E}$ (meV)")
         ax[0].legend()
-        ax[1].plot(epoch_number, rmse_F_1, "-o", label="H1")
-        ax[1].plot(epoch_number, rmse_F_2, "->", label="H2")
+        ax[1].plot(epoch_number[start:], rmse_F_1[start:], "-o", label="H1")
+        ax[1].plot(epoch_number[start:], rmse_F_2[start:], "->", label="H2")
         ax[1].set_ylabel("RMSE${_F}$ (meV/$\AA$)")
-        ax[2].plot(epoch_number, rmse_S_1, "-o", label="H1")
-        ax[2].plot(epoch_number, rmse_S_2, "->", label="H2")
+        ax[2].plot(epoch_number[start:], rmse_S_1[start:], "-o", label="H1")
+        ax[2].plot(epoch_number[start:], rmse_S_2[start:], "->", label="H2")
         ax[2].set_ylabel("RMSE${_S}$ (meV/$\AA^3$)")
         ax[2].set_xlabel("Epoch")
         # Save figure
@@ -53,11 +53,11 @@ def plot_training_curve(filename, multihead=False, path_mpl_style=""):
     else:
         epoch_number, rmse_E, rmse_F, rmse_S = parse_training_errors(filename)
         fig, ax = plt.subplots(3, 1, figsize=(10, 15))
-        ax[0].plot(epoch_number, rmse_E, "-o")
+        ax[0].plot(epoch_number[start:], rmse_E[start:], "-o")
         ax[0].set_ylabel("RMSE${_E}$ (meV)")
-        ax[1].plot(epoch_number, rmse_F, "-o")
+        ax[1].plot(epoch_number[start:], rmse_F[start:], "-o")
         ax[1].set_ylabel("RMSE${_F}$ (meV/$\AA$)")
-        ax[2].plot(epoch_number, rmse_S, "-o")
+        ax[2].plot(epoch_number[start:], rmse_S[start:], "-o")
         ax[2].set_ylabel("RMSE${_S}$ (meV/$\AA^3$)")
         ax[2].set_xlabel("Epoch")
     return fig, ax
