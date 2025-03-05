@@ -6,7 +6,7 @@ def parse_training_errors(filename, multihead=False):
     with open (filename, "r") as f:
         lines = f.readlines()
     if multihead:
-        epoch_lines = [line for line in lines if "Epoch" in line][1:]
+        epoch_lines = [line for line in lines if "Epoch" in line]#[1:]
         # Split epoch_lines: odd numbers are 1st head, even numbers are 2nd head
         epoch_lines_1 = epoch_lines[::2]
         epoch_lines_2 = epoch_lines[1::2]
