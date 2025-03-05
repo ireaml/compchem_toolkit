@@ -33,9 +33,16 @@ def parse_log(
     lines_starting_md = [(index, i) for index, i in enumerate(out.stdout.split()) if ":" in i]
     if len(lines_starting_md) > 1:
         print("Several MD runs found in log file. Selecting last one.")
-    first_line, fields = int(lines_starting_md[1].split(":")[0]), out.stdout.split()[lines_starting_md[0]:]
+        #print(lines_starting_md)
+    first_line, fields = (
+        int(lines_starting_md[-1][1].split(":")[0]), # Index of line in file
+        out.stdout.split()[lines_starting_md[-1][0]+1:]
+    )
     out_last = subprocess.run(["grep", "-wn", string_end_md_steps, log_file], capture_output=True, text=True)
-    last_line = int(out_last.stdout.split()[-1].split(":")[0])
+    index_lines = [l for l in out_last.stdout.split() if ":" in l]
+    last_line = int(index_lines[-1].split(":")[0])
+    print("First and Last line", first_line, last_line)
+    print("Fields", fields)
 
     x = np.linspace(first_line+1, last_line-1, num_steps, dtype=int)
     lines = []
