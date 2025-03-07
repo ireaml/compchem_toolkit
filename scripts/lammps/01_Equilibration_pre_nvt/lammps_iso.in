@@ -1,0 +1,102 @@
+# This script runs a Frenkel-Ladd thermodynamic integration for the calculation of the free energy of.
+# See job.sh for the variables that need to be passed in the command line.
+
+
+#--------------------------- Simulation variables -----------------------------#
+# Initalizes the random number generator.
+variable RANDOM equal 1
+variable rnd equal round(random(0,999,${RANDOM}))
+
+# Simulation control parameters.
+# variable  t_eq equal 100  # Equilibration time.
+# variable  t equal 500  # Switching time.
+variable  T equal 300  # Temperature
+variable  P equal 1.01325  # Pressure
+# Box variable (used for rescaling)
+variable  Vol equal vol
+variable  lx equal lx
+variable  ly equal ly
+variable  lz equal lz
+
+# Time Settings
+variable        Nevery       equal 2 # Sample every x steps
+variable        Nrepeat      equal 20 # # of times to use input values for calculating averages
+variable        Nfreq        equal 50 # calculate averages every this many time steps
+variable        pre_npt_nsteps equal 1000
+variable        npt_nsteps   equal 3000
+#------------------------------------------------------------------------------#
+
+
+#---------------------------- Atomic setup ------------------------------------#
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+atom_modify map yes
+newton on
+
+# Create atoms.
+read_data struc.data
+
+# Define interatomic potential.
+pair_style mace no_domain_decomposition
+pair_coeff * * MACE_model_stagetwo.model-lammps.pt Cs Pb Cl 
+
+timestep  0.004  # 2 fs
+#------------------------------------------------------------------------------#
+
+
+#----------------------------- Run simulation ---------------------------------#
+# Setup thermo output.
+thermo_style     custom step temp press vol pe ke etotal
+thermo           0
+variable         dE equal pe-f_f2
+variable         lambda equal f_f2[1]
+
+#------------------------------  V_eq  ------------------------------#
+# 1. Equilibrium volume
+# Initial temperature to accelerate equilibration.
+velocity         all create ${T} ${rnd} dist gaussian
+
+# NPT, P=1 atm, T=100 K
+fix 1 all nph iso ${P} ${P} 1
+fix 2 all langevin ${T} ${T} 0.1 999
+
+# NPT Equilibration
+print "--------------- pre-NPT starts ------------"
+# pre-npt equilibration to reach average volume value
+# Print volume every 10 steps
+fix             3 all ave/time 1 1 10 v_Vol ave one file vol_ave_pre_npt.dat
+variable        mean_Vol equal f_3
+run             ${pre_npt_nsteps}
+print           "Average volume after pre-NPT = ${mean_Vol}"
+unfix           3
+print "--------------- pre-NPT ends ------------"
+
+# Proper NPT after equilibration
+print "--------------- NPT starts ------------"
+# npt equilibration with volume averaging around equilibrium
+fix             4 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_Vol ave one file vol_ave_npt.dat
+variable        mean_Vol equal f_4
+run             ${npt_nsteps}
+print           "Average volume after NPT = ${mean_Vol}"
+print           "Last volume after NPT = ${Vol}"
+
+# Calculate the scale factors for each dimension
+variable        scaleX equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+variable        scaleY equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+variable        scaleZ equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+
+print           "scaleX = ${scaleX}"
+print           "scaleY = ${scaleY}"
+print           "scaleZ = ${scaleZ}"
+
+# Apply the scaling to fix the volume
+change_box  all x scale ${scaleX} y scale ${scaleY}  z scale ${scaleZ} remap
+print "New volume value after change_box = ${Vol}"
+# Save the restart file
+write_data restart.data
+dump 2 all custom 1 traj.equilibration_stage1.dat id type mass x y z vx vy vz
+run 0
+undump 2
+print "--------------- NPT ends  ------------"

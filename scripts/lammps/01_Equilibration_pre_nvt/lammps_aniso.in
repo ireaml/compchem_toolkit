@@ -1,0 +1,134 @@
+# This script runs a Frenkel-Ladd thermodynamic integration for the calculation of the free energy of.
+# See job.sh for the variables that need to be passed in the command line.
+
+
+#--------------------------- Simulation variables -----------------------------#
+# Initalizes the random number generator.
+variable RANDOM equal 1
+variable rnd equal round(random(0,999,${RANDOM}))
+
+# Simulation control parameters.
+# variable  t_eq equal 100  # Equilibration time.
+# variable  t equal 500  # Switching time.
+variable  T equal 300  # Temperature
+variable  P equal 1.01325  # Pressure
+# Box variable (used for rescaling)
+variable  Vol equal vol
+variable  lx equal lx
+variable  ly equal ly
+variable  lz equal lz
+
+# Time Settings
+variable        Nevery       equal 2
+variable        Nrepeat      equal 10
+variable        Nfreq        equal 50
+variable        pre_npt_nsteps equal 3000
+variable        npt_nsteps   equal 3000
+#------------------------------------------------------------------------------#
+
+
+#---------------------------- Atomic setup ------------------------------------#
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+atom_modify map yes
+newton on
+
+# Create atoms.
+read_data struc.data
+
+# Define interatomic potential.
+pair_style mace no_domain_decomposition
+pair_coeff * * MACE_model_stagetwo.model-lammps.pt Cs Pb Cl
+
+timestep  0.004  # 2 fs
+#------------------------------------------------------------------------------#
+
+
+#----------------------------- Run simulation ---------------------------------#
+# Setup thermo output.
+thermo_style     custom step temp press vol pe ke etotal
+thermo           0
+variable         dE equal pe-f_f2
+variable         lambda equal f_f2[1]
+
+#------------------------------  V_eq  ------------------------------#
+# 1. Equilibrium volume
+# Initial temperature to accelerate equilibration.
+velocity         all create ${T} ${rnd} dist gaussian
+
+# NPT, P=1 atm, T=100 K
+fix 1 all nph aniso ${P} ${P} 1
+fix 2 all langevin ${T} ${T} 0.1 999
+
+# NPT Equilibration
+print "--------------- pre-NPT starts ------------"
+# pre-npt equilibration to reach average volume value
+# Print volume every 10 steps
+fix             3 all ave/time 1 1 10 v_Vol ave one file vol_ave_pre_npt.dat
+fix             4 all ave/time 1 1 10 v_lx ave one file lx_ave_pre_npt.dat
+fix             5 all ave/time 1 1 10 v_ly ave one file ly_ave_pre_npt.dat
+fix             6 all ave/time 1 1 10 v_lz ave one file lz_ave_pre_npt.dat
+variable        mean_Vol equal f_3
+variable        mean_lx equal f_4
+variable        mean_ly equal f_5
+variable        mean_lz equal f_6
+run             ${pre_npt_nsteps}
+print           "Average volume after pre-NPT = ${mean_Vol}"
+print           "Average lx after pre-NPT = ${mean_lx}"
+print           "Average ly after pre-NPT = ${mean_ly}"
+print           "Average lz after pre-NPT = ${mean_lz}"
+unfix           3
+unfix           4
+unfix           5
+unfix           6
+print "--------------- pre-NPT ends ------------"
+
+# Proper NPT after equilibration
+print "--------------- NPT starts ------------"
+# npt equilibration with volume averaging around equilibrium
+fix             4 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_Vol ave one file vol_ave_npt.dat
+fix             5 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lx ave one file lx_ave_npt.dat
+fix             6 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_ly ave one file ly_ave_npt.dat
+fix             7 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lz ave one file lz_ave_npt.dat
+variable        mean_Vol equal f_4
+variable        mean_lx equal f_5
+variable        mean_ly equal f_6
+variable        mean_lz equal f_7
+run             ${npt_nsteps}
+print           "Average volume after NPT = ${mean_Vol}"
+print           "Last volume after NPT = ${Vol}"
+print           "Average lx after NPT = ${mean_lx}"
+print           "Average ly after NPT = ${mean_ly}"
+print           "Average lz after NPT = ${mean_lz}"
+unfix           4
+unfix           5
+unfix           6
+unfix           7
+
+# Calculate the scale factors for each dimension
+# variable        scaleX equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+# variable        scaleY equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+# variable        scaleZ equal (v_mean_Vol/v_Vol)^(1.0/3.0)
+variable       scaleX equal (v_mean_lx/v_lx)
+variable       scaleY equal (v_mean_ly/v_ly)
+variable       scaleZ equal (v_mean_lz/v_lz)
+
+print           "scaleX = ${scaleX}"
+print           "scaleY = ${scaleY}"
+print           "scaleZ = ${scaleZ}"
+
+# Apply the scaling to fix the volume
+change_box  all x scale ${scaleX} y scale ${scaleY}  z scale ${scaleZ} remap
+print "New volume value after change_box = ${Vol}"
+print "New lx value after change_box = ${lx}"
+print "New ly value after change_box = ${ly}"
+print "New lz value after change_box = ${lz}"
+
+# Save the restart file
+write_data restart.data
+dump 2 all custom 1 traj.equilibration_stage1.dat id type mass x y z vx vy vz
+run 0
+undump 2
+print "--------------- NPT ends  ------------"
