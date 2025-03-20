@@ -1,4 +1,4 @@
-"Highly unoptimise routine to calculate inherent structures from MD performed at different temperatures. Faster to run optimisations with lammps than ASE"
+"Highly unoptimised routine to calculate inherent structures from MD performed at different temperatures. Faster to run optimisations with lammps than ASE"
 1. Use read_n_write.py to select and write structures. Alternatively, if using different clusters for the MD and relaxations, can do:
     1. Use read.py in HPC to select structures from dump file
     2. Use write.py to write structures to individual .data files (required to load them in lammps with PBC info)

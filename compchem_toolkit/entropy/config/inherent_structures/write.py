@@ -1,7 +1,7 @@
 from ase.io import read, write
 from ase.io.lammpsdata import write_lammps_data
 
-traj = read("./lammps_md.traj", ":")
+traj = read("./selected_inherent_struc_pre_relaxation.traj", ":")
 for i, atoms in enumerate(traj):
     atoms.symbols[atoms.symbols == "H"] = "Cd"
     atoms.symbols[atoms.symbols == "He"] = "Te"

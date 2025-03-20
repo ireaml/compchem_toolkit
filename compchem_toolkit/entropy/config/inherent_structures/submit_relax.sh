@@ -1,3 +1,5 @@
+# Submit relaxation for all inherent structures
+# Usage: bash submit_relax.sh
 for i in */ ;
 do cd $i ;
 echo $i ;

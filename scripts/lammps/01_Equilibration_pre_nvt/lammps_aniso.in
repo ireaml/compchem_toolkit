@@ -20,10 +20,10 @@ variable  lz equal lz
 
 # Time Settings
 variable        Nevery       equal 2
-variable        Nrepeat      equal 10
+variable        Nrepeat      equal 20
 variable        Nfreq        equal 50
-variable        pre_npt_nsteps equal 3000
-variable        npt_nsteps   equal 3000
+variable        pre_npt_nsteps equal 1000 # Equilibration before averaging
+variable        npt_nsteps   equal 5000
 #------------------------------------------------------------------------------#
 
 
@@ -88,24 +88,20 @@ print "--------------- pre-NPT ends ------------"
 # Proper NPT after equilibration
 print "--------------- NPT starts ------------"
 # npt equilibration with volume averaging around equilibrium
-fix             4 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_Vol ave one file vol_ave_npt.dat
-fix             5 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lx ave one file lx_ave_npt.dat
-fix             6 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_ly ave one file ly_ave_npt.dat
-fix             7 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lz ave one file lz_ave_npt.dat
-variable        mean_Vol equal f_4
-variable        mean_lx equal f_5
-variable        mean_ly equal f_6
-variable        mean_lz equal f_7
+fix             7 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_Vol ave one file vol_ave_npt.dat
+fix             8 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lx ave one file lx_ave_npt.dat
+fix             9 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_ly ave one file ly_ave_npt.dat
+fix             10 all ave/time ${Nevery} ${Nrepeat} ${Nfreq} v_lz ave one file lz_ave_npt.dat
+variable        mean_Vol equal f_7
+variable        mean_lx equal f_8
+variable        mean_ly equal f_9
+variable        mean_lz equal f_10
 run             ${npt_nsteps}
 print           "Average volume after NPT = ${mean_Vol}"
 print           "Last volume after NPT = ${Vol}"
 print           "Average lx after NPT = ${mean_lx}"
 print           "Average ly after NPT = ${mean_ly}"
 print           "Average lz after NPT = ${mean_lz}"
-unfix           4
-unfix           5
-unfix           6
-unfix           7
 
 # Calculate the scale factors for each dimension
 # variable        scaleX equal (v_mean_Vol/v_Vol)^(1.0/3.0)
@@ -131,4 +127,11 @@ write_data restart.data
 dump 2 all custom 1 traj.equilibration_stage1.dat id type mass x y z vx vy vz
 run 0
 undump 2
+
+unfix           7
+unfix           8
+unfix           9
+unfix           10
+unfix           2
+unfix           1
 print "--------------- NPT ends  ------------"

@@ -22,11 +22,12 @@ read_data $n  #"${frame}.data"
 pair_style mace no_domain_decomposition
 pair_coeff * * MACE_model_swa.model-lammps.pt Cd Te
 min_style cg
-change_box all x final 0 12.9935 y final 0 12.9935  z final 0 12.9935  remap
+# Set the cell to the 0K value:
+# change_box all x final 0 12.9935 y final 0 12.9935  z final 0 12.9935  remap
 minimize 1.0e-4 1.0e-6 2000 10000
 reset_timestep ${frame} # set the timestep back to the same value in the orginal lammpstrj
 write_dump all atom relaxed.lammpstrj modify append yes # write frame to a single dump file
 next frame # iterate frame
 jump lammps_relax.in loop
 
-print             "Finished simulation"
+print  "Finished simulation"

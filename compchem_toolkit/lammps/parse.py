@@ -53,4 +53,4 @@ def parse_log(
     data = {}
     for i, k in enumerate(fields):
         data[k] = [l[i] for l in lines]
-    return data:quit
+    return data

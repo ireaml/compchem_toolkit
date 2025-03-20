@@ -236,14 +236,14 @@ def plot_validation(
         stresses_dft.append(atoms.get_stress())
         # MLFF prediction
         if mace_head:
-            atoms.head = mace_head
+            atoms.info["head"] = mace_head
         atoms.calc = mace_calc
         energies_mace.append(atoms.get_potential_energy())
         forces_mace.append(atoms.get_forces())
         stresses_mace.append(atoms.get_stress())
     if not name_plots:
         composition = traj_val[0].get_chemical_formula()
-        num_atoms = traj_val[0].num_atoms
+        num_atoms = len(traj_val[0])
         name_plots = f"{composition}_{num_atoms}atoms"
     # Energies
     print("Plotting energy errors...")
