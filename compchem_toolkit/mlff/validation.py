@@ -33,11 +33,11 @@ def plot_energy_errors(traj_val, energies_dft, energies_mace, name_plots):
     # Grey dashed line at 0
     g.ax_joint.axhline(0, color="grey", linestyle="--", alpha=1, linewidth=1.2)
     # Add MAE & RMSE as box to plot
-    mae = np.mean(np.abs(errors))
-    rmse = np.sqrt(np.mean(errors**2))
+    # mae = np.mean(np.abs(errors))
+    # rmse = np.sqrt(np.mean(errors**2))
     # Per atom
-    mae_per_atom = mae / len(traj_val[0])
-    rmse_per_atom = rmse / len(traj_val[0])
+    mae_per_atom = np.mean(np.abs(errors))
+    rmse_per_atom = np.sqrt(np.mean(errors**2))
     txt = f"MAE: {mae_per_atom:.2f} meV/atom\nRMSE: {rmse_per_atom:.2f} meV/atom"
     g.ax_joint.text(0.60, 0.95, txt, transform=g.ax_joint.transAxes, fontsize=12, verticalalignment="top",
                     bbox=dict(facecolor="#507BAA", edgecolor="none", alpha=0.1))
