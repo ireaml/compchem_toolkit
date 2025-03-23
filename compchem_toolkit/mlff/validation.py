@@ -22,7 +22,8 @@ def plot_energy_errors(traj_val, energies_dft, energies_mace, name_plots):
     n_atoms = len(traj_val[0])
     errors = 1000/n_atoms * ( np.array(energies_mace) - np.array(energies_dft))
     # Create dataframe
-    df = pd.DataFrame({"DFT energy (eV/atom)": energies_dft/n_atoms, "Error (meV/atom)": errors})
+    df = pd.DataFrame({"DFT energy (eV/atom)": np.array(energies_dft)/n_atoms,
+                       "Error (meV/atom)": errors})
     # Set thermostat as integer
     df["T (K)"] = np.ones(len(traj_val))
     # Plot using jointplot
