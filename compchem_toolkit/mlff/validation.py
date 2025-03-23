@@ -28,7 +28,7 @@ def plot_energy_errors(traj_val, energies_dft, energies_mace, name_plots):
     df["T (K)"] = np.ones(len(traj_val))
     # Plot using jointplot
     g = sns.jointplot(data=df, x="DFT energy (eV/atom)",
-                      y="Error (meV)", hue="T (K)", kind="scatter", alpha=0.7,
+                      y="Error (meV/atom)", hue="T (K)", kind="scatter", alpha=0.7,
                     edgecolor="none", palette=['#5FABA2', '#D4447E', '#E9A66C'])
     # Grey dashed line at 0
     g.ax_joint.axhline(0, color="grey", linestyle="--", alpha=1, linewidth=1.2)
