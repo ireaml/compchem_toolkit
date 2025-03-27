@@ -132,14 +132,32 @@ def perform_direct_sampling(
 
 
 def sample(
-    db,
-    n_clusters,
+    db: list,
+    n_clusters: int,
     path_MACE_model: str="",
     device="cuda",
     threshold_init=0.15,
     plot=True,
     score=True
 ) -> list:
+    """
+    Sample structures from a database using the DIRECT algorithm.
+
+    Args:
+        db (list): List of ASE atoms objects.
+        n_clusters (int): Number of clusters to use for sampling.
+        path_MACE_model (str): Path to the MACE model. If not provided, SOAP descriptors will be used.
+        device (str): Device to use for MACE calculation of descriptors ("cuda" or "cpu").
+            Default is "cuda".
+        threshold_init (float): Initial threshold for clustering.
+        plot (bool): Whether to plot the results showing a 2D descriptor map with
+            the sampled structures and the full dataset.
+        score (bool): Whether to calculate the coverage score (how well
+            the sampled structures cover the full configurational space).
+
+    Returns:
+        list: List of selected structures.
+    """
     if os.path.exists(path_MACE_model):
         mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
         mace_descriptors = []
