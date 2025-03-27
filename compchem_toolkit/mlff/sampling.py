@@ -139,7 +139,7 @@ def sample(
     threshold_init=0.15,
     plot=True,
     score=True
-) -> list:
+) -> tuple:
     """
     Sample structures from a database using the DIRECT algorithm.
 
@@ -156,7 +156,7 @@ def sample(
             the sampled structures cover the full configurational space).
 
     Returns:
-        list: List of selected structures.
+        tuple: (list of sampled structures, matplotlib figure)
     """
     if os.path.exists(path_MACE_model):
         mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
