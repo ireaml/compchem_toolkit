@@ -156,7 +156,7 @@ def sample(
             the sampled structures cover the full configurational space).
 
     Returns:
-        tuple: (list of sampled structures, matplotlib figure)
+        tuple: (indices of sampled structures in db, list of sampled structures, matplotlib figure)
     """
     if os.path.exists(path_MACE_model):
         mace_calc = MACECalculator(model_paths=path_MACE_model, device=device)
@@ -192,4 +192,4 @@ def sample(
     )
     idx = DIRECT_selection['selected_indexes']
     traj_selected = [db[i] for i in idx]
-    return traj_selected, fig
+    return idx, traj_selected, fig
