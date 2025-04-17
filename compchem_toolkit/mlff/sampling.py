@@ -105,7 +105,7 @@ def perform_direct_sampling(
         # Get the symbols of the atoms in the structure
         DIRECT_sampler = DIRECTSampler(
             structure_encoder=False,
-            clustering=BirchClustering(n=n_clusters, threshold_init=threshold_init),
+            clustering=BirchClustering(n=int(n_clusters), threshold_init=threshold_init),
             select_k_from_clusters=SelectKFromClusters(k=1),
         )
         print(f"Sampling...")
