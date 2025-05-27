@@ -32,8 +32,6 @@ def plot_training_curve(
     multihead=False,
     path_mpl_style="",
     start=0,
-    fig=None,
-    ax=None
 ):
     if os.path.exists(path_mpl_style):
         plt.style.use(path_mpl_style)
@@ -43,8 +41,7 @@ def plot_training_curve(
         epoch_number, rmse_E_1, rmse_F_1, rmse_S_1, rmse_E_2, rmse_F_2, rmse_S_2 = parse_training_errors(
             filename, multihead=multihead
         )
-        if not fig and not ax:
-            fig, ax = plt.subplots(3, 1, figsize=(6, 9), sharex=True)
+        fig, ax = plt.subplots(3, 1, figsize=(6, 9), sharex=True)
         ax[0].plot(epoch_number[start:], rmse_E_1[start:], "-o", label="H1")
         ax[0].plot(epoch_number[start:], rmse_E_2[start:], "->", label="H2")
         ax[0].set_ylabel("RMSE${_E}$ (meV)")
