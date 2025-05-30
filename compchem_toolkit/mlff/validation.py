@@ -222,9 +222,10 @@ def plot_validation(
         device = "cuda"
     else:
         device = "cpu"
-    mace_calc = MACECalculator(model_paths=path_mace_model, device=device)
-    if mace_head:
-        assert mace_head in mace_calc.heads
+    if mace_head is None:
+        mace_calc = MACECalculator(model_paths=path_mace_model, device=device, )
+    else:
+        mace_calc = MACECalculator(model_paths=path_mace_model, device=device, head=mace_head)
     if isinstance(path_trajectory, str):
         traj_val = read(path_trajectory, ":")
     elif isinstance(path_trajectory, list) and isinstance(path_trajectory[0], Atoms):
@@ -237,9 +238,9 @@ def plot_validation(
         energies_dft.append(atoms.get_potential_energy())
         forces_dft.append(atoms.get_forces())
         stresses_dft.append(atoms.get_stress())
-        # MLFF prediction
-        if mace_head:
-            atoms.info["head"] = mace_head
+        # # MLFF prediction
+        # if mace_head:
+        #     atoms.info["head"] = mace_head
         atoms.calc = mace_calc
         energies_mace.append(atoms.get_potential_energy())
         forces_mace.append(atoms.get_forces())
