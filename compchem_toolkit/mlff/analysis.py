@@ -27,7 +27,7 @@ def plot_max_force(trajs):
 def plot_max_stress(trajs):
     mean_stress_per_config = []
     for traj in trajs:
-        stresses = [a.get_stresses() for a in traj]
+        stresses = [a.get_stress() for a in traj]
         # Mean abs stress for each atom:
         mean_stress_per_config = [np.mean(np.abs(s), axis=1) for s in stresses]
     # Plot distribution of stresses in violin and strip plot
