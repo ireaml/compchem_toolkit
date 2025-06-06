@@ -25,21 +25,23 @@ def plot_max_force(trajs):
     return fig, ax
 
 def plot_max_stress(trajs):
-    mean_stress_per_config = []
+    max_stress_per_config = []
     for traj in trajs:
         stresses = [a.get_stress() for a in traj]
         # Mean abs stress for each atom:
-        mean_stress_per_config = [np.mean(np.abs(s), axis=1) for s in stresses]
+        max_stress_per_config = [
+            np.mean(np.abs(s), axis=0) for s in stresses
+        ]
     # Plot distribution of stresses in violin and strip plot
     fig, ax = plt.subplots(figsize=(5, 5))
     ax.set_ylabel("Max $<\sigma_{xyz}>$ (GPa)")
     ax.set_xlabel("System")
-    sns.violinplot(data=mean_stress_per_config, ax=ax, cut=0, inner="quartile", linewidth=0.5, density_norm="count")
+    sns.violinplot(data=max_stress_per_config, ax=ax, cut=0, inner="quartile", linewidth=0.5, density_norm="count")
     # Add stripplot
-    sns.stripplot(data=mean_stress_per_config, ax=ax, color="grey", alpha=0.5, size=2)
+    sns.stripplot(data=max_stress_per_config, ax=ax, color="grey", alpha=0.5, size=2)
     ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=3))
-    ax.set_xticks(np.arange(len(mean_stress_per_config)))
-    ax.set_xticklabels([f"System {i+1}" for i in range(len(mean_stress_per_config))])
+    ax.set_xticks(np.arange(len(max_stress_per_config)))
+    ax.set_xticklabels([f"System {i+1}" for i in range(len(max_stress_per_config))])
     return fig, ax
 
 def plot_energies(trajs):
