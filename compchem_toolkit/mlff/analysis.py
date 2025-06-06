@@ -29,9 +29,9 @@ def plot_max_stress(trajs):
     for traj in trajs:
         stresses = [a.get_stress() for a in traj]
         # Mean abs stress for each atom:
-        max_stress_per_config = [
-            np.mean(np.abs(s), axis=0) for s in stresses
-        ]
+        max_stress_per_config.append(
+            [np.mean(np.abs(s), axis=0) for s in stresses]
+        )
     # Plot distribution of stresses in violin and strip plot
     fig, ax = plt.subplots(figsize=(5, 5))
     ax.set_ylabel("Max $<\sigma_{xyz}>$ (GPa)")
