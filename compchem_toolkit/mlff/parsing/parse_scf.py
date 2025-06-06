@@ -14,7 +14,7 @@ print(folders)
 #folders = [d for d in folders if int(d.split("_")[1]) < 100]
 for folder in tqdm(folders):
     if os.path.exists(f"{folder}/OUTCAR"):
-        last_lines = tailer.tail(open(f"{folder}/OUTCAR"), 4)       
+        last_lines = tailer.tail(open(f"{folder}/OUTCAR"), 4)
         vol_in_lines = ["Voluntary context switches" in l for l in last_lines]
         if not any(vol_in_lines):
             print(f"Calc {folder} not finished")
@@ -32,4 +32,4 @@ for folder in tqdm(folders):
     else:
         print(f"Calc {folder} hasn't an OUTCAR.")
 # Write to trajectory
-write("scf_c422_V_Cl_0.traj", atoms_list)
+write("scf.traj", atoms_list)
