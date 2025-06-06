@@ -45,10 +45,10 @@ def plot_max_stress(trajs):
 def plot_energies(trajs):
     energies = []
     for traj in trajs:
-        energies.append([a.get_potential_energy() for a in traj])
+        energies.append([a.get_potential_energy()/len(a) for a in traj])
     # Plot distribution of energies in violin and strip plot
     fig, ax = plt.subplots(figsize=(5, 5))
-    ax.set_ylabel("Energy (eV)")
+    ax.set_ylabel("Energy (eV/atom)")
     ax.set_xlabel("System")
     sns.violinplot(data=energies, ax=ax, cut=0, inner="quartile", linewidth=0.5, density_norm="count")
     # Add stripplot
