@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+plt.style.use("../style/whitney.mplstyle")
 
 def plot_max_force(trajs):
     max_force_per_config = []
