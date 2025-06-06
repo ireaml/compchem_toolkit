@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+current_dir = os.path.dirname(__file__)
+plt.style.use(f"{current_dir}/../style/whitney.mplstyle")
 
 def plot_max_force(trajs):
     max_force_per_config = []
