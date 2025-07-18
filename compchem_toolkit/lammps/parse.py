@@ -47,9 +47,12 @@ def parse_log(
     x = np.linspace(first_line+1, last_line-1, num_steps, dtype=int)
     lines = []
     for i in x:
-        lines.append(
-            [float(n) for n in linecache.getline(log_file, i).split()]
-        )
+        if linecache.getline(log_file, i):
+            # Check it is a float
+            if len(linecache.getline(log_file, i).split()) == len(fields):
+                lines.append(
+                    [float(n) for n in linecache.getline(log_file, i).split()]
+                )
     data = {}
     for i, k in enumerate(fields):
         data[k] = [l[i] for l in lines]

@@ -44,7 +44,7 @@ def plot_max_stress(trajs):
     ax.set_xticklabels([f"System {i+1}" for i in range(len(max_stress_per_config))])
     return fig, ax
 
-def plot_energies(trajs):
+def plot_energies(trajs: list):
     energies = []
     for traj in trajs:
         energies.append([a.get_potential_energy()/len(a) for a in traj])

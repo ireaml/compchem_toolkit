@@ -22,12 +22,12 @@ for folder in tqdm(folders):
         # Load the calculator from the VASP output files
         calc_load = Vasp(restart=True, directory=folder)
         # Get energy and forces
-        energy = calc_load.get_potential_energy()
-        forces = calc_load.get_forces()
+        # energy = calc_load.get_potential_energy()
+        # forces = calc_load.get_forces()
         # Add to atoms object
         atoms = calc_load.get_atoms()
         atoms.set_calculator(calc_load)
-        atoms.info["id"] = f"c422_{folder}"
+        atoms.info["id"] = folder
         atoms_list.append(atoms)
     else:
         print(f"Calc {folder} hasn't an OUTCAR.")
