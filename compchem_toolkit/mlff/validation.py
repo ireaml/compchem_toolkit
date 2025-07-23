@@ -42,9 +42,10 @@ def plot_energy_errors(traj_val, energies_dft, energies_mace, name_plots):
     g.ax_joint.text(0.60, 0.95, txt, transform=g.ax_joint.transAxes, fontsize=12, verticalalignment="top",
                     bbox=dict(facecolor="#507BAA", edgecolor="none", alpha=0.1))
     # Reduce number of decimal points in the x-axis labels
-    g.ax_joint.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.2f}"))
-    # Reduce number of xticks to 5
-    g.ax_joint.xaxis.set_major_locator(plt.MaxNLocator(5))
+    #g.ax_joint.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.2f}"))
+    # Reduce number of xticks to 4
+    g.ax_joint.xaxis.set_major_locator(plt.MaxNLocator(4))
+    g.ax_joint.yaxis.set_major_locator(plt.MaxNLocator(4))
     # Move legend to the top left
     # g.ax_joint.legend(loc="upper left", title="T (K)")
     # Remove legend
