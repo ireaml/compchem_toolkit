@@ -41,6 +41,9 @@ def plot_energy_errors(traj_val, energies_dft, energies_mace, name_plots):
     txt = f"MAE: {mae_per_atom:.2f} meV/atom\nRMSE: {rmse_per_atom:.2f} meV/atom"
     g.ax_joint.text(0.60, 0.95, txt, transform=g.ax_joint.transAxes, fontsize=12, verticalalignment="top",
                     bbox=dict(facecolor="#507BAA", edgecolor="none", alpha=0.1))
+    # Reduce number of decimal points in the x-axis labels
+    g.ax_joint.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.2f}"))
+    # Reduce number of decimal points in the y-axis labels
     # Move legend to the top left
     # g.ax_joint.legend(loc="upper left", title="T (K)")
     # Remove legend
